@@ -1,0 +1,79 @@
+<section class="content-header">
+  <h1>{{moduleName}}</h1>
+  <div class="content-header-action">
+    <div class="instance-status-details m-r-20">
+      <div class="instance-status-box d-flex flex-wrap align-items-center">
+        <div class="col">
+          <div class="instance-status-info">
+            <span class="user-status-type status-green">Active</span>
+          </div>
+        </div>
+        <div class="col">
+          <div class="instance-status-info">
+            <span class="user-status-type status-red">Inactive</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <app-search-render [searchValue]="searchParameters.searchText" (searchEvent)="searchTextCallback($event)">
+      </app-search-render>
+    </div>
+    <div class="p-l-20">
+      <button type="button" [routerLink]="['/buildings/add']" mat-flat-button color="primary"
+              class="text-white" title="Add Device">
+        Add Building
+      </button>
+    </div>
+  </div>
+</section>
+<div class="content p-t-0">
+  <div class="user-grid-wrapper custom-height-grid-box ng-star-inserted">
+    <div class="row">
+
+      <div *ngFor="let building of buildingList" class="col-lg-4 col-ld-3 m-b-30 ng-star-inserted">
+        <div class="user-grid-box">
+          <div (click)="activeInactivebuilding(building.guid, true, building.name)"
+               *ngIf="building['isactive']" class="user-status-indicator status-green"></div>
+          <div (click)="activeInactivebuilding(building.guid, false, building.name)"
+               *ngIf="!building['isactive']" class="user-status-indicator status-red"></div>
+          <div class="grid-inner-flex d-flex align-items-center pb-3">
+            <div class="user-image-box">
+              <img alt="" class="img-fluid ng-star-inserted"
+                   src="{{building['image'] == '00000000-0000-0000-0000-000000000000' || building['image'] == null || building['image'] == '' ? _appConstant.noImg: mediaUrl + building['image']}}">
+            </div>
+            <div class="user-detail-box">
+              <h3 class="user-name">
+                <a [routerLink]="['/buildings/details',building['guid']]">{{building['name']}}</a>
+              </h3>
+              <div class="building-location">
+                <div class="d-flex align-items-start">
+                  <div class="ml-2">
+                    <p class="mb-0">Wings: <span>{{building['wingCount']}}</span></p>
+                    <p class="mb-0">Elevators: <span>{{building['elevatorCount']}}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="user-actions d-flex flex-wrap">
+            <div class="user-actions-cta text-center ng-star-inserted">
+              <a class="green" [routerLink]="['/buildings/',building['guid']]">
+                <img alt="Edit" src="../../../assets/images/icon-edit.svg">
+              </a>
+            </div>
+            <div class="user-actions-cta text-center">
+              <a href="javascript:;" data-toggle="modal" data-target="#deviceDeleteModal"
+                 (click)="deleteModel(building)" title="Delete">
+                <img alt="View" src="../../../assets/images/icon-delete.svg">
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="buildingList.length === 0" class="centerclass">No records found</div>
+    </div>
+  </div>
+</div>
+<app-confirm-dialog [dialogId]="'spaceStatusModal'" [status]="changeStatusDeviceStatus" [msgType]="0"
+                    [moduleName]="changeStatusDeviceName" (onSave)="changeDeviceStatus()"></app-confirm-dialog>

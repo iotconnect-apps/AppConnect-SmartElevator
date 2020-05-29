@@ -1,0 +1,15 @@
+﻿
+
+Scaffold-DbContext "Server=40.113.196.248;initial catalog=dev-elevator;user id=devuser;password=softweb#123;MultipleActiveResultSets=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Force
+
+
+
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+	if (!optionsBuilder.IsConfigured)
+    {
+	//IConfigurationRoot configuration = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("appsettings.json").Build();
+                string connString = component.helper.SolutionConfiguration.Configuration.ConnectionString;// configuration.GetConnectionString("DefaultConnection");
+                optionsBuilder.UseSqlServer(connString);
+    }
+}

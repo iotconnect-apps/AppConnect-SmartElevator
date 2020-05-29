@@ -1,0 +1,308 @@
+<section class="content-header">
+  <h1>
+    <img class="mr-1 mb-1" style="cursor: pointer;" src="../../../../assets/images/back-arrow-icon.svg" (click)="location.back();" />
+   {{buildingname}}
+  </h1>
+  </section>
+<div class="content p-t-0">
+
+  <div class="row dashboardtop-widget m-b-30">
+    <div class="col-xl-2 col-lg-3">
+      <div class="dashboard-chart bgbluewidget text-center">
+        <h4>
+          {{buidingDetailOverview['elevatorsCounts']['connected']}} /
+          {{buidingDetailOverview['elevatorsCounts']['total']}}
+        </h4>
+        <p class="small-widget-heading">Elevators Connected</p>
+      </div>
+    </div>
+    <div class="col-xl-2 col-lg-3">
+      <div class="dashboard-chart bggreenlwidget text-center">
+        <h4>{{buidingDetailOverview['averageOperatingHours']}}</h4>
+        <p class="small-widget-heading">Total Operating Hours</p>
+      </div>
+    </div>
+    <div class="col-xl-2 col-lg-3">
+      <div class="dashboard-chart bgpinkwidget text-center">
+        <h4>{{buidingDetailOverview['averageTrips']}}</h4>
+        <p class="small-widget-heading">Total Trips</p>
+      </div>
+    </div>
+    <div class="col-xl-2 col-lg-3">
+      <div class="dashboard-chart bgyellowwidget text-center">
+        <h4>{{buidingDetailOverview['energy']}} KW</h4>
+        <p class="small-widget-heading">Energy</p>
+      </div>
+    </div>
+    <div class="col-xl-2 col-lg-3">
+      <div class="dashboard-chart bgorangewidget text-center">
+        <h4>{{buidingDetailOverview['totalMaintenanceCarriedOut']}}</h4>
+        <p class="small-widget-heading">Total Maintenance Carried Out</p>
+      </div>
+    </div>
+    <div class="col-xl-2 col-lg-3">
+      <div class="dashboard-chart bgdarkbluewidget text-center">
+        <h4>{{buidingDetailOverview['alerts']}}</h4>
+        <p class="small-widget-heading">Alerts</p>
+      </div>
+    </div>
+  </div>
+
+  <!--Wing List start-->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="drag-body dashboard-widget">
+        <div class="panel-heading">
+          <h5 class="panel-title"> Wings </h5>
+          <!-- <ul class="filter-for-chart">
+            <li>
+              <button [disableRipple]="true" mat-icon-button>
+                <mat-icon>more_horiz</mat-icon>
+              </button>
+            </li>
+          </ul> -->
+        </div>
+        <mat-card class="dashboard-card mat-card">
+          <div class="cropscontainer">
+            <div class="user-grid-box m-r-20 m-b-20" *ngFor="let wing of wingList">
+              <div class="text-center text-center m-r-20 m-l-20">
+                <div class="crops-img-box">
+                  <img alt="" class="img-fluid"
+                       src="{{wing.image == '00000000-0000-0000-0000-000000000000' || wing.image == null || wing.image == '' ? _appConstant.noImg: mediaUrl + wing.image}}">
+                </div>
+                <p class="wing-title-details" [title]="wing.name">{{wing.name}}</p>
+              </div>
+              <div class="user-actions d-flex flex-wrap">
+                <!---->
+                <!---->
+                <div class="user-actions-cta text-center ng-star-inserted">
+                  <a class="green" href="javascript:;">
+                    <img alt="Edit" src="../../../assets/images/icon-edit.svg" (click)="getWingDetails(wing.guid);">
+                  </a>
+                </div>
+                <!---->
+                <div class="user-actions-cta text-center">
+                  <a class="red" href="javascript:void(0)" data-toggle="modal" data-target="#deviceDeleteModal"
+                     (click)="deleteModel(wing)" title="Delete">
+                    <img src="./assets/images/icon-delete.svg">
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="user-grid-box bigaddbutton m-b-20">
+              <a style="cursor:pointer" href="javascript:void(0);" (click)="Respond();">
+                <i class="material-icons">add</i>
+              </a>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+  <!--Wing List end-->
+
+  <div class="building-details-wrapper row custom-building-wrapper">
+    <div class="col-md-12 col-lg-8">
+      <div class="drag-body dashboard-widget">
+        <div class="panel-heading">
+          <h5 class="panel-title"> Elevator Wise Peak Hours </h5>
+          <ul class="filter-for-chart chart-filter-header">
+            <li>
+              <mat-form-field class="mb-0">
+                <mat-label>Elevators</mat-label>
+                <mat-select (selectionChange)="changeElevator()" [(ngModel)]="elevatorselected" multiple>
+                  <mat-option *ngFor="let elevator of elevatorList" [value]="elevator.value">
+                    {{elevator.text}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </li>
+            <li>
+              <button [disableRipple]="true" mat-icon-button (click)="isOpenFilterGraph = !isOpenFilterGraph;">
+                <mat-icon>more_horiz</mat-icon>
+              </button>
+              <div class="status-ticket-dropdown dashboard-custom-dropdown" *ngIf="isOpenFilterGraph">
+                <mat-radio-group (change)="changePeakHoursGraphFilter($event)" aria-label="Select an option">
+                  <mat-radio-button [checked]="type == 'd'?'true':'false'" value="Day">Day</mat-radio-button>
+                  <mat-radio-button [checked]="type == 'w'?'true':'false'" value="Week">Week</mat-radio-button>
+                  <mat-radio-button [checked]="type == 'm'?'true':'false'" value="Month">Month</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <mat-card class="dashboard-card mat-card">
+          <google-chart *ngIf="lineChartData.dataTable.length" [data]="lineChartData"></google-chart>
+          <div class="centerclass soil-nutritions" *ngIf="!lineChartData.dataTable.length && elevatorselected.length">
+            No Data Found
+          </div>
+          <div class="centerclass soil-nutritions" *ngIf="!lineChartData.dataTable.length && !elevatorselected.length">
+            No Elevator Selected
+          </div>
+        </mat-card>
+      </div>
+      <div class="drag-body dashboard-widget">
+        <div class="panel-heading">
+          <h5 class="panel-title"> Operating Hours vs. Energy Consumption </h5>
+          <ul class="filter-for-chart chart-filter-header">
+            <li>
+              <button [disableRipple]="true" mat-icon-button (click)="isOpenFilter = !isOpenFilter;">
+                <mat-icon>more_horiz</mat-icon>
+              </button>
+              <div class="status-ticket-dropdown dashboard-custom-dropdown" *ngIf="isOpenFilter">
+                <mat-radio-group (change)="changeGraphFilter($event)" aria-label="Select an option">
+                  <mat-radio-button checked value="Day">Day</mat-radio-button>
+                  <mat-radio-button value="Week">Week</mat-radio-button>
+                  <mat-radio-button value="Month">Month</mat-radio-button>
+                </mat-radio-group>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <mat-card class="dashboard-card mat-card">
+          <google-chart *ngIf="comboChart.dataTable.length" [data]="comboChart"></google-chart>
+          <div class="centerclass soil-nutritions" *ngIf="!comboChart.dataTable.length">
+            No Data found
+          </div>
+        </mat-card>
+      </div>
+    </div>
+    <div class="col-md-12 col-lg-4">
+      <div class="drag-body dashboard-widget custom-alert-sidebar">
+        <div class="panel-heading">
+          <h5 class="panel-title alerts-title"> Alerts </h5>
+          <div style="margin-right: 20px;" class="tab-link-bar">
+            <a [routerLink]="['/alerts/',buildingGuid]" href="javascript:;">View All</a>
+          </div>
+        </div>
+        <mat-card class="dashboard-card mat-card">
+            <div  *ngIf="alerts.length==0" class="centerclass">
+            No records found
+          </div>
+          <ul style="height:955px;" *ngIf="!alerts.length" class="alerts-dashboard alerts-dashboard-legend">
+            <li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
+              <span class="alert-info-title">{{alert['message']}}</span>
+              <span class="alerts-info">{{alert['buildingName']}}</span>
+              <span class="alerts-info text-right p-r-10">{{getLocalDate(alert['eventDate'])}}</span>
+            </li>
+
+          </ul>
+        
+          <div class="alert-indicator-wrapper">
+            <div class="alert-indicator-list">
+              <div class="alert-indicator Critical">
+                <span class="legend"></span>
+                <span class="alert-text">Critical</span>
+              </div>
+              <div class="alert-indicator Information">
+                <span class="legend"></span>
+                <span class="alert-text">Information</span>
+              </div>
+              <div class="alert-indicator Major">
+                <span class="legend"></span>
+                <span class="alert-text">Major</span>
+              </div>
+              <div class="alert-indicator Minor">
+                <span class="legend"></span>
+                <span class="alert-text">Minor</span>
+              </div>
+              <div class="alert-indicator Warning">
+                <span class="legend"></span>
+                <span class="alert-text">Warning</span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+</div>
+<section class="create-drawer transform" *ngIf="respondShow">
+  <div class="head">
+    <a href="javascript:void()" class="closedrawer" (click)="closerepond()">
+      <i class="material-icons">close</i>
+    </a>
+    <h2>{{wingModuleName}}</h2>
+  </div>
+  <div class="form-container">
+    <div class="view-form">
+      <!-- <div class="form-detail-list">
+        <label>Email: </label>
+        <p>Email</p>
+      </div>
+      <div class="form-detail-list">
+        <label>Name: </label>
+        <p>Name</p>
+      </div> -->
+      <form [formGroup]="wingForm" (ngSubmit)="manageWing();" autocomplete="off" class="form-horizontal common-form">
+        <div class="row">
+          <div class="col-12">
+            <label class="form-label">Name<b>*</b></label>
+            <mat-form-field>
+              <input matInput name="name" formControlName="name" type="text" maxlength="50"
+                     [(ngModel)]="wingObject['name']" class="form-control" tabindex="1" placeholder="Name">
+              <div class="form-control-feedback" *ngIf="wingForm.controls['name'].errors">
+                <p class="form-tooltip-error sm " [ngClass]="{'error':true}"
+                   *ngIf="wingForm.controls['name'].errors.required && checkSubmitStatus">
+                  Please enter Wing Name
+                </p>
+              </div>
+            </mat-form-field>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description</label>
+            <mat-form-field>
+              <textarea matInput rows="3" class="form-control" formControlName="description" placeholder="Description"
+                        name="description" [(ngModel)]="wingObject['description']" maxlength="255" tabindex="2"></textarea>
+            </mat-form-field>
+          </div>
+          <div class="col-12">
+
+            <label for="myFile" class="upload-file">
+              <input formControlName="imageFile" #myFile id="myFile" (change)="handleImageInput($event)" class="upload-image" type="file"
+                     accept=".jpg, .jpeg, .png" tabindex="3" />
+
+              <div class="form-control-feedback" *ngIf="wingForm.controls['imageFile'].errors">
+                <p class="form-tooltip-error sm" [ngClass]="{'error':true}"
+                   *ngIf="wingForm.controls['imageFile'].errors.required && checkSubmitStatus">
+                  Upload Image
+                </p>
+              </div>
+            </label>
+            <!--<a href="javascript:()" class="underline">Update Image</a>-->
+            <fieldset class="form-group">
+              <ul class="image-list m-t-10">
+                <li>
+                  <div class="user-profle-image">
+                    <img *ngIf="wingObject['image']" (click)="imageRemove()" class="close-icn"
+                         src="../../../../assets/images/cancel-dashboard.svg" alt="">
+                    <img alt="" class="img-fluid"
+                         src="{{wingObject['image'] == '00000000-0000-0000-0000-000000000000' || wingObject['image'] == null || wingObject['image'] == '' ? _appConstant.noImg:  wingObject['image']}}" />
+                    <!--<a href="javascript:()" class="underline">Update Image</a>-->
+
+                  </div>
+                </li>
+              </ul>
+            </fieldset>
+            <p>{{fileName}}</p>
+          </div>
+          <div class="col-12 mt-4">
+            <div class="form-field">
+              <div class="input-field ">
+                <button mat-flat-button color="primary" class="text-white " title="Submit" type="submit">
+                  {{buttonname}}
+                </button>
+                <button mat-flat-button color="primary" class="text-white m-l-10" (click)="closerepond()"
+                        title="Cancel">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</section>
