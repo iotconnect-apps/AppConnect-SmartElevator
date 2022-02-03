@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace iot.solution.entity
 {
@@ -9,12 +10,16 @@ namespace iot.solution.entity
         //public string Name { get; set; }
         //public string Description { get; set; }
         private string _name;
+        
+        [Required]
         public string Name
         {
             get { return _name; }
             set { _name = value.Trim(); }
         }
         private string _description;
+       
+        [Required]
         public string Description
         {
             get { return _description; }

@@ -8,7 +8,8 @@ DECLARE @output INT = 0
 EXEC [dbo].[ElevatorMaintenance_UpdateStatus]	 
 	@guid			= '651B311A-40D7-4304-B3C3-7C2DC4E8F505'	
 	,@companyGuid	= '651B311A-40D7-4304-B3C3-7C2DC4E8F505'	
-	,@status		= ''
+	,@startDateTime	= '06:00:00'
+	,@endDateTime	= '06:00:00'
 	,@invokinguser 	= 'FF221908-486A-4E5A-843A-C68EB413F6EA'
 	,@output		= @output OUTPUT		
 	,@version		= 'v1'
@@ -25,9 +26,9 @@ ROLLBACK TRAN
 CREATE PROCEDURE [dbo].[ElevatorMaintenance_UpdateStatus]
 		@guid					UNIQUEIDENTIFIER
 		,@companyGuid			UNIQUEIDENTIFIER	
-		,@status				NVARCHAR(100)		= NULL
 		,@description			NVARCHAR(1000)		= NULL
-		,@scheduledDate			DATETIME			= NULL
+		,@startDateTime			DATETIME			= NULL				
+		,@endDateTime			DATETIME			= NULL
 		,@invokinguser			UNIQUEIDENTIFIER	= NULL
 		,@version				nvarchar(10)    
 		,@output				SMALLINT			OUTPUT    
@@ -46,9 +47,9 @@ BEGIN
             SELECT 'ElevatorMaintenance_UpdateStatus' AS '@procName' 
             , CONVERT(nvarchar(MAX),@guid) AS '@guid' 
 			, CONVERT(nvarchar(MAX),@companyGuid) AS '@companyGuid' 		
-            , @status AS '@status' 
 			, @description AS '@description' 
-			, CONVERT(nvarchar(MAX),@scheduledDate) AS '@scheduledDate' 
+			, CONVERT(nvarchar(MAX),@startDateTime) AS '@startDateTime' 
+			, CONVERT(nvarchar(MAX),@endDateTime) AS '@endDateTime' 
             , CONVERT(nvarchar(MAX),@invokinguser) AS '@invokinguser' 
             , CONVERT(nvarchar(MAX),@version) AS '@version' 
             , CONVERT(nvarchar(MAX),@output) AS '@output' 
@@ -74,9 +75,9 @@ BEGIN
 		BEGIN TRAN
 
 			UPDATE [dbo].[ElevatorMaintenance] 
-			SET [status] = ISNULL(@status,[status])
-				,[description] = ISNULL(@description,[description])
-				,[scheduledDate] = ISNULL(@scheduledDate,[scheduledDate])
+			SET [description] = ISNULL(@description,[description])
+				,[startDateTime] = ISNULL(@startDateTime,[startDateTime])
+				,[endDateTime] = ISNULL(@endDateTime,[endDateTime])
 			WHERE [guid] = @guid AND [companyGuid] = @companyGuid AND [isDeleted] = 0
 
 		COMMIT TRAN	

@@ -8,6 +8,7 @@ using IoTConnect.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -173,8 +174,8 @@ namespace IoTConnect.DeviceProvider
                 var result = await formattedUrl.WithHeaders(new { Content_type = Constants.contentType, Authorization = Constants.bearerTokenType + _token })
                                          .SetQueryParams(new
                                          {
-                                             pageSize = deviceModel.PageSize,
-                                             pageNumber = deviceModel.PageNo,
+                                             pageSize = -1,//deviceModel.PageSize,
+                                             pageNumber = -1,//deviceModel.PageNo,
                                              sortBy = deviceModel.SortBy,
                                              searchText = deviceModel.SearchText,
                                              CustomField = deviceModel.CustomField
@@ -406,7 +407,7 @@ namespace IoTConnect.DeviceProvider
             catch (Exception ex)
             {
                 await _ioTConnectAPIDiscovery.LoggedException(_envCode, ex, "Device", "AcquireDevice()");
-                throw ex;
+                return null;
             }
         }
 
@@ -1233,6 +1234,37 @@ namespace IoTConnect.DeviceProvider
                 List<ErrorItemModel> errorItemModels = new List<ErrorItemModel>();
                 errorItemModels.AddRange(ex.error);
                 return new DataResponse<List<DeviceConnectionStatus>>(null)
+                {
+                    errorMessages = errorItemModels,
+                    message = ex.message,
+                    status = false
+                };
+            }
+        }
+
+        public async Task<DataResponse<StompReaderData>> GetStompConfiguartionData(string configuartionType)
+        {
+            try
+            {
+                var portalApi = await _ioTConnectAPIDiscovery.GetPortalUrl(_envCode, _solutionKey, IoTConnectBaseURLType.TelemetryBaseUrl);
+                string accessTokenUrl = string.Concat(portalApi, DeviceApi.GetStompConfiguartionData);
+                string formattedUrl = String.Format(accessTokenUrl, Constants.deviceVersion);
+                var res =await formattedUrl.WithHeaders(new { Content_type = Constants.contentType, Authorization = Constants.bearerTokenType + _token })
+                                         .SetQueryParams(new { type = configuartionType })
+                .GetJsonAsync<BaseResponse<StompReaderData>>();
+                return new DataResponse<StompReaderData>(null)
+                {
+                    data = res.Data,
+                    message =res.Message,
+                    status = true
+                };
+            }
+            catch (IoTConnectException ex)
+            {
+
+                List<ErrorItemModel> errorItemModels = new List<ErrorItemModel>();
+                errorItemModels.AddRange(ex.error);
+                return new DataResponse<StompReaderData>(null)
                 {
                     errorMessages = errorItemModels,
                     message = ex.message,

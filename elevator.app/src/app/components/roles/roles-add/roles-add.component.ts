@@ -64,6 +64,9 @@ export class RolesAddComponent implements OnInit {
     //  this.getTemplateLookup();
   }
 
+  /**
+	* For create form group for add role
+	**/
   createFormGroup() {
     this.roleForm = new FormGroup({
       name: new FormControl('', [Validators.required, Validators.minLength(4)]),
@@ -73,6 +76,9 @@ export class RolesAddComponent implements OnInit {
   }
 
 
+  /**
+	* For  add new role
+	**/
   addRole() {
     this.checkSubmitStatus = true;
     if (this.isEdit) {
@@ -92,18 +98,21 @@ export class RolesAddComponent implements OnInit {
         this.spinner.hide();
         if (response.isSuccess === true) {
           this.router.navigate(['/roles']);
-          this._notificationService.add(new Notification('success', successMessage));
+          this._notificationService.handleResponse({message:successMessage},"success");
         }
         else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       });
     }
   }
 
+  /**
+	* For Get Role Details
+	**/
   getRoleDetails(roleGuid) {
     this.spinner.show();
     this.rolesService.getRoleDetails(roleGuid).subscribe(response => {
@@ -111,11 +120,11 @@ export class RolesAddComponent implements OnInit {
       if (response.isSuccess === true) {
         this.roleObject = response.data;
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 

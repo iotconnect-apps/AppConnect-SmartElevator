@@ -48,6 +48,56 @@ namespace iot.solution.host
 
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = configuration.GetSection("SwashbuckleSpec:Title").Value, Version = "v1" });
             });
+            #region IDS Swagger
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            //    {
+
+            //        Type = SecuritySchemeType.OAuth2,
+            //        Description = "Standard authorisation using the Bearer scheme. Example: \"bearer {token}\"",
+            //        In = ParameterLocation.Header,
+            //        Name = "Authorization",
+            //        Scheme = "Bearer",
+            //        OpenIdConnectUrl = new System.Uri($"{component.helper.SolutionConfiguration.Configuration.Token.Authority}/.well-known/openid-configuration"),
+            //        BearerFormat = "JWT",
+            //        Flows = new OpenApiOAuthFlows
+            //        {
+            //            Implicit = new OpenApiOAuthFlow
+            //            {
+            //                AuthorizationUrl = new System.Uri($"{component.helper.SolutionConfiguration.Configuration.Token.Authority}/connect/authorize"),
+            //                Scopes = new Dictionary<string, string>
+            //        {
+            //            { "iotconnect.solution.api.fullaccess", "iotconnect.solution.api.fullaccess" }
+            //        },
+            //                TokenUrl = new System.Uri($"{component.helper.SolutionConfiguration.Configuration.Token.Authority}/connect/token")
+            //            }
+            //        }
+            //    });
+            //    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+            //    {
+            //        {
+            //            new OpenApiSecurityScheme
+            //            {
+            //                Reference = new OpenApiReference
+            //                {
+            //                    Type = ReferenceType.SecurityScheme,
+            //                    Id = "Bearer"
+            //                },
+            //                Scheme = "oauth2",
+            //                Name = "Bearer",
+            //                In = ParameterLocation.Header,
+
+            //            },
+            //            new List<string>()
+            //        }
+            //    });
+
+            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = configuration.GetSection("SwashbuckleSpec:Title").Value, Version = "v1" });
+
+
+            //});
+            #endregion
         }
 
         public static void Configure(this IApplicationBuilder app)
@@ -61,13 +111,22 @@ namespace iot.solution.host
                 //c.SwaggerEndpoint("../swagger/v1/swagger.json", "Iot Solutions");
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
+            #region IDS Swagger
+            //app.UseSwaggerUI(s =>
+            //{
+            //    s.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
 
+            //    s.OAuthClientId(component.helper.SolutionConfiguration.Configuration.Token.OAuthClientID);
+            //    s.OAuthRealm(component.helper.SolutionConfiguration.Configuration.Token.OAuthRealm);
+            //    s.OAuthAppName(component.helper.SolutionConfiguration.Configuration.Token.ApiName);
+            //});
+            #endregion
         }
     }
 
     public class ExplictObsoleteRoutes : IOperationFilter
     {
-        private string[] solutionKeyHeaderRequiredPaths = { "/account/refreshtoken", "/subscriber", "/account/login", "/account/adminlogin", "/alert/addiotalert" };
+        private string[] solutionKeyHeaderRequiredPaths = { "/account/refreshtoken", "/subscriber", "/account/login", "/account/adminlogin", "/alert/addiotalert", "/chart/executecron" };
 
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {

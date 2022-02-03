@@ -35,7 +35,6 @@ import { JwtInterceptor } from './helpers/jwt.interceptor';
 
 import { TextMaskModule } from 'angular2-text-mask';
 import { AppConstant } from './app.constants';
-import { NgScrollbarModule } from 'ngx-scrollbar';
 import { ClickOutsideModule } from 'ng-click-outside';
 
 // import custom pipes
@@ -53,25 +52,46 @@ import {
 	HeaderComponent, LoginHeaderComponent, LoginFooterComponent, LeftMenuComponent, LoginComponent,
 	PageSizeRenderComponent, PaginationRenderComponent, ResetpasswordComponent,
 	SearchRenderComponent, SettingsComponent,
-	MyProfileComponent, ChangePasswordComponent,
+	MyProfileComponent, ChangePasswordComponent,CallbackComponent,
 	SubscribersListComponent, HardwareListComponent, HardwareAddComponent, SubscriberDetailComponent,
 	NotificationListComponent, NotificationAddComponent, AdminNotificationListComponent, AdminNotificationAddComponent,
 	ElevatorAddComponent, ElevatorListComponent,
 	BuildingListComponent, BuildingAddComponent, BuildingDetailsComponent,
-  ScheduledMaintenanceListComponent, ScheduledMaintenanceAddComponent, AdminUserListComponent, 
-  AdminUserAddComponent,AlertsComponent
+  ScheduledMaintenanceListComponent, ScheduledMaintenanceAddComponent, AdminUserListComponent,
+  AdminUserAddComponent,AlertsComponent,
+	DynamicDashboardComponent,
+	WidgetCounterAComponent,
+	WidgetCounterBComponent,
+	WidgetCounterCComponent,
+	WidgetCounterDComponent,
+	WidgetCounterEComponent,
+	WidgetCounterFComponent,
+	WidgetAlertAComponent,
+	WidgetAlertBComponent,
+	WidgetChartAComponent,
+	WidgetChartBComponent,
+	SizeDetectorComponent
 } from './components/index'
 
 import {
 	AuthService, AdminAuthGuired, NotificationService, ElevatorService,
-	ApiConfigService, DashboardService, UsersService, DeviceService, RolesService, SettingsService,
-	ConfigService, LookupService, SubscriptionService, RuleService
+	ApiConfigService, DashboardService, UserService, DeviceService, RolesService, SettingsService,
+	ConfigService, LookupService, SubscriptionService, RuleService,
+	DynamicDashboardService
 } from './services/index';
 import { TooltipDirective } from './helpers/tooltip.directive';
 import { ElevatorDetailsComponent } from './components/elevator/elevator-details/elevator-details.component';
 //import { RolesDetailsComponent } from './components/roles/roles-details/roles-details.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 
+import { NgScrollbarModule } from 'ngx-scrollbar';
+
+/*Dynamic Dasboard Code*/
+import { GridsterModule } from 'angular-gridster2';
+import { ColorPickerModule } from 'ngx-color-picker';
+import {MatSliderModule} from '@angular/material/slider';
+import { Ng5SliderModule } from 'ng5-slider';
+/*Dynamic Dasboard Code*/
 
 const config: SocketIoConfig = { url: 'http://localhost:2722', options: {} };
 const MY_NATIVE_FORMATS = {
@@ -84,13 +104,14 @@ const MY_NATIVE_FORMATS = {
 	monthYearA11yLabel: 'MMMM-YYYY'
 };
 export function initializeApp(appConfigService: ApiConfigService) {
-	return (): Promise<any> => { 
+	return (): Promise<any> => {
 	  return appConfigService.load();
 	}
   }
 
 @NgModule({
 	declarations: [
+		CallbackComponent,
 		AppComponent,
 		PageNotFoundComponent,
 		LoginComponent,
@@ -147,7 +168,19 @@ export function initializeApp(appConfigService: ApiConfigService) {
 		ScheduledMaintenanceAddComponent,
 		AdminUserAddComponent,
 		AdminUserListComponent,
-		AlertsComponent
+		AlertsComponent,
+		DynamicDashboardComponent,
+		WidgetCounterAComponent,
+		WidgetCounterBComponent,
+		WidgetCounterCComponent,
+		WidgetCounterDComponent,
+		WidgetCounterEComponent,
+		WidgetAlertAComponent,
+		WidgetAlertBComponent,
+		WidgetChartAComponent,
+		WidgetChartBComponent,
+		SizeDetectorComponent,
+		WidgetCounterFComponent
 	],
 	entryComponents: [DeleteDialogComponent, MessageDialogComponent],
 	imports: [
@@ -183,7 +216,7 @@ export function initializeApp(appConfigService: ApiConfigService) {
 		OwlNativeDateTimeModule,
 		FullCalendarModule,
 		SocketIoModule.forRoot(config),
-		AgmCoreModule.forRoot({ apiKey: 'AIzaSyDf7yFrQU0RsJpULnEgj8wU6JlGNPeQ6k4' }),
+    AgmCoreModule.forRoot({ apiKey: '' }),
 		AgmJsMarkerClustererModule,
 		AgmDirectionModule,
 		TextMaskModule,
@@ -193,7 +226,11 @@ export function initializeApp(appConfigService: ApiConfigService) {
 		MatDatepickerModule,
 		MatNativeDateModule,
 		ChartsModule,
-		NgSelectModule
+		NgSelectModule,
+		GridsterModule,
+		ColorPickerModule,
+		MatSliderModule,
+		Ng5SliderModule
 	],
 	providers: [
 		ElevatorService,
@@ -206,11 +243,12 @@ export function initializeApp(appConfigService: ApiConfigService) {
 		DashboardService,
 		ConfigService,
 		NotificationService,
-		UsersService,
+		UserService,
 		LookupService,
 		RuleService,
 		SubscriptionService,
 		AppConstant,
+		DynamicDashboardService,
 		ApiConfigService,
 		{
 			provide: DateTimeAdapter,
@@ -225,7 +263,7 @@ export function initializeApp(appConfigService: ApiConfigService) {
 			multi: true
 		},
 		{ provide: APP_INITIALIZER,useFactory: initializeApp, deps: [ApiConfigService], multi: true}
-		
+
 	],
 	bootstrap: [AppComponent]
 })

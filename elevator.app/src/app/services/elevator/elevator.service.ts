@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
 import { CookieService } from 'ngx-cookie-service'
 import { ApiConfigService, NotificationService } from 'app/services';
-
+import * as moment from 'moment'
 @Injectable({
 	providedIn: 'root'
 })
@@ -248,13 +248,6 @@ export class ElevatorService {
 		});
 	}
 
-	checkkitCode(data) {
-
-		return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/device/ValidateKit/' + data).map(response => {
-			return response;
-		});
-	}
-
 	getelevatorDetails(elevetorGuid) {
 
 		return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/device/' + elevetorGuid).map(response => {
@@ -281,10 +274,19 @@ export class ElevatorService {
 	}
 	getelevatorcountDetails(elevetorGuid) {
 
-		return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/dashboard/getdevicedetail/' + elevetorGuid).map(response => {
+		return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/dashboard/getdevicedetail/' + elevetorGuid, {
+			params: {
+        currentDate: moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        timeZone: moment().utcOffset().toString()
+			}
+		  }).map(response => {
 			return response;
 		});
 	}
+
+	getTimeZone() {
+		return /\((.*)\)/.exec(new Date().toString())[1];
+	  }
 
 	getTripGraph(elevetorGuid) {
 

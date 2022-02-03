@@ -207,39 +207,56 @@ namespace iot.solution.service.Implementation
                     throw new NotFoundCustomException($"{CommonException.Name.NoRecordsFound} : Entity");
                 }
 
-                var dbSubEntities = _entityRepository.FindBy(t => t.ParentEntityGuid.Equals(id) && t.CompanyGuid.Equals(SolutionConfiguration.CompanyId) && !t.IsDeleted);
-                var dbDevice = _deviceRepository.FindBy(x => dbSubEntities.Any(t => t.Guid.Equals(x.EntityGuid)) && x.CompanyGuid.Equals(SolutionConfiguration.CompanyId)).FirstOrDefault();
+                //var dbSubEntities = _entityRepository.FindBy(t => t.ParentEntityGuid.Equals(id) && t.CompanyGuid.Equals(SolutionConfiguration.CompanyId) && !t.IsDeleted);
+                //var dbDevice = _deviceRepository.FindBy(x => dbSubEntities.Any(t => t.Guid.Equals(x.EntityGuid)) && x.CompanyGuid.Equals(SolutionConfiguration.CompanyId)).FirstOrDefault();
 
-
-                if (dbDevice == null)
-                {
-                    var deleteEntityResult = _iotConnectClient.Entity.Delete(id.ToString()).Result;
-                    if (deleteEntityResult != null && deleteEntityResult.status)
+                var dbChildEntity = _entityRepository.FindBy(x => x.ParentEntityGuid.Equals(id) && !x.IsDeleted).FirstOrDefault();
+                var dbDevice = _deviceRepository.FindBy(x => !x.IsDeleted && (x.EntityGuid.Equals(id) || (dbChildEntity != null && x.EntityGuid.Equals(dbChildEntity.Guid)))).FirstOrDefault();
+                if (dbDevice == null && dbChildEntity == null)
+                {                   
+                    var res = _iotConnectClient.Device.GetDeviceCounterByEntity(id.ToString()).Result;                    
+                    if(res.data[0].counters.total !=0)
                     {
-                        dbEntity.IsDeleted = true;
-                        dbEntity.UpdatedDate = DateTime.Now;
-                        dbEntity.UpdatedBy = SolutionConfiguration.CurrentUserId;
-                        actionStatus = _entityRepository.Update(dbEntity);
-                        //if (!string.IsNullOrEmpty(dbEntity.Image))
-                        //{
-                        //    DeleteEntityImage(dbEntity.Guid, dbEntity.Image);
-                        //}
-                        return actionStatus;
-                    }
+                        _logger.Error($"Location is not deleted in solution database.Machine exists, Error: {actionStatus.Message}");
+                        actionStatus.Success = false;
+                        actionStatus.Message = "Building or Wing is already associated with Elevator in IoTConnect so it can not be deleted.";
+                    }  
                     else
                     {
-                        _logger.Error($"Entity is not deleted from iotconnect, Error: {deleteEntityResult.message}");
-                        actionStatus.Success = false;
-                        actionStatus.Message = new UtilityHelper().IOTResultMessage(deleteEntityResult.errorMessages);
+                        var deleteEntityResult = _iotConnectClient.Entity.Delete(id.ToString()).Result;
+                        if (deleteEntityResult != null && deleteEntityResult.status)
+                        {
+                            dbEntity.IsDeleted = true;
+                            dbEntity.UpdatedDate = DateTime.Now;
+                            dbEntity.UpdatedBy = SolutionConfiguration.CurrentUserId;
+                            actionStatus = _entityRepository.Update(dbEntity);
+                            //if (!string.IsNullOrEmpty(dbEntity.Image))
+                            //{
+                            //    DeleteEntityImage(dbEntity.Guid, dbEntity.Image);
+                            //}
+                            return actionStatus;
+                        }
+                        else
+                        {
+                            _logger.Error($"Entity is not deleted from iotconnect, Error: {deleteEntityResult.message}");
+                            actionStatus.Success = false;
+                            actionStatus.Message = new UtilityHelper().IOTResultMessage(deleteEntityResult.errorMessages);
+                        }
                     }
+                    
+                }
+                else if (dbChildEntity != null)
+                {
+                    _logger.Error($"Wing is already associated with Building so it can not be deleted, Error: {actionStatus.Message}");
+                    actionStatus.Success = false;
+                    actionStatus.Message = "Building is already associated with Wing so it can not be deleted.";
                 }
                 else
                 {
                     _logger.Error($"Entity cannot be deleted. Device allocated!, Error: {actionStatus.Message}");
                     actionStatus.Success = false;
-                    actionStatus.Message = "Building cannot be deleted because device allocated!";
+                    actionStatus.Message = "Elevator is already associated with Building or Wing so it can not be deleted.";
                 }
-
 
             }
             catch (Exception ex)
@@ -333,22 +350,30 @@ namespace iot.solution.service.Implementation
                     throw new NotFoundCustomException($"{CommonException.Name.NoRecordsFound} : Entity");
                 }
 
-                var dbSubEntities = _entityRepository.FindBy(t => t.ParentEntityGuid.Equals(id) && t.CompanyGuid.Equals(SolutionConfiguration.CompanyId) && !t.IsDeleted);
-                var dbDevice = _deviceRepository.FindBy(x => dbSubEntities.Any(t => t.Guid.Equals(x.EntityGuid)) && x.CompanyGuid.Equals(SolutionConfiguration.CompanyId)).FirstOrDefault();
-
-
-                if (dbDevice == null)
+                //var dbSubEntities = _entityRepository.FindBy(t => t.ParentEntityGuid.Equals(id) && t.CompanyGuid.Equals(SolutionConfiguration.CompanyId) && !t.IsDeleted);
+                //var dbDevice = _deviceRepository.FindBy(x => dbSubEntities.Any(t => t.Guid.Equals(x.EntityGuid)) && x.CompanyGuid.Equals(SolutionConfiguration.CompanyId)).FirstOrDefault();
+                var dbChildEntity = _entityRepository.FindBy(x => x.ParentEntityGuid.Equals(id) && !x.IsDeleted).FirstOrDefault();
+                var dbDevice = _deviceRepository.FindBy(x => !x.IsDeleted && (x.EntityGuid.Equals(id) || (dbChildEntity != null && x.EntityGuid.Equals(dbChildEntity.Guid)))).FirstOrDefault();
+                if (dbDevice == null && dbChildEntity == null)
                 {
+
+                   
                     dbEntity.IsActive = status;
                     dbEntity.UpdatedDate = DateTime.Now;
                     dbEntity.UpdatedBy = SolutionConfiguration.CurrentUserId;
                     return _entityRepository.Update(dbEntity);
                 }
+                else if(dbChildEntity!=null)
+                {
+                    _logger.Error($"Entity cannot be deleted. Device allocated!, Error: {actionStatus.Message}");
+                    actionStatus.Success = false;
+                    actionStatus.Message = "Building status cannot be changed because wing allocated!";
+                }
                 else
                 {
                     _logger.Error($"Entity cannot be deleted. Device allocated!, Error: {actionStatus.Message}");
                     actionStatus.Success = false;
-                    actionStatus.Message = "Building status cannot be changed because device allocated!";
+                    actionStatus.Message = "Building status cannot be changed because elevator allocated!";
                 }
 
 
@@ -373,15 +398,15 @@ namespace iot.solution.service.Implementation
                 TotalDevices = 15
             };
         }
-        public Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverviewDetail(Guid buildingId)
+        public Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverviewDetail(Guid buildingId, DateTime currentDate, string timeZone)
         {
             Entity.BaseResponse<List<Entity.BuildingOverviewResponse>> listResult = new Entity.BaseResponse<List<Entity.BuildingOverviewResponse>>();
             Entity.BaseResponse<Entity.BuildingOverviewResponse> result = new Entity.BaseResponse<Entity.BuildingOverviewResponse>();
             try
             {
-                listResult = _entityRepository.GetBuildingOverview(buildingId, "");
+                listResult = _entityRepository.GetBuildingOverview(buildingId, "",currentDate,timeZone);
 
-                var deviceResult = _deviceService.GetDeviceCounters();
+                var deviceResult = _deviceService.GetDeviceCountersByEntity(buildingId);
                 if (listResult.Data.Count > 0)
                 {
                     result.IsSuccess = true;
@@ -389,8 +414,8 @@ namespace iot.solution.service.Implementation
                     result.LastSyncDate = listResult.LastSyncDate;
                     if (deviceResult.IsSuccess && deviceResult.Data != null)
                     {
-                        result.Data.TotalConnectedElevator = deviceResult.Data.connected.ToString();
-                        result.Data.TotalElevator = deviceResult.Data.total.ToString();
+                        result.Data.TotalConnectedElevator = deviceResult.Data.counters.connected.ToString();
+                        result.Data.TotalElevator = deviceResult.Data.counters.total.ToString();
                     }
                 }
             }
@@ -400,13 +425,13 @@ namespace iot.solution.service.Implementation
             }
             return result;
         }
-        public Entity.BuildingOverviewResponse GetBuildingOverview(Guid buildingId, string frequency)
+        public Entity.BuildingOverviewResponse GetBuildingOverview(Guid buildingId, string frequency, DateTime currentDate, string timeZone)
         {
             Entity.BaseResponse<List<Entity.BuildingOverviewResponse>> listResult = new Entity.BaseResponse<List<Entity.BuildingOverviewResponse>>();
             Entity.BuildingOverviewResponse result = new Entity.BuildingOverviewResponse();
             try
             {
-                listResult = _entityRepository.GetBuildingOverview(buildingId, frequency);
+                listResult = _entityRepository.GetBuildingOverview(buildingId, frequency,currentDate,timeZone);
                 if (listResult.Data.Count > 0)
                 {
                     result = listResult.Data[0];

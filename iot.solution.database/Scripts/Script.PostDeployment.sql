@@ -27,7 +27,7 @@ IF NOT EXISTS(SELECT 1 FROM dbo.[configuration] WHERE [configKey] = 'db-version'
 BEGIN
 
 	INSERT [dbo].[KitType] ([guid], [companyGuid], [name], [code], [tag], [isActive], [isDeleted], [createdDate], [createdBy], [updatedDate], [updatedBy]) 
-		VALUES (N'92ff19d0-8863-4142-a19c-9a74d6f9353d', N'b811b983-9448-4021-9978-6c699404eb81', N'ELDefault', N'ELDefault', N'base', 1, 0, CAST(N'2020-02-25T11:58:30.127' AS DateTime), N'6ba9cad3-c112-44df-9490-74292f7ed5b5', NULL, NULL)
+		VALUES (N'92ff19d0-8863-4142-a19c-9a74d6f9353d', N'b811b983-9448-4021-9978-6c699404eb81', N'SEDefault', N'SEDefault', N'base', 1, 0, CAST(N'2020-02-25T11:58:30.127' AS DateTime), N'6ba9cad3-c112-44df-9490-74292f7ed5b5', NULL, NULL)
 	
 	INSERT [dbo].[KitTypeAttribute] ([guid], [parentTemplateAttributeGuid], [templateGuid], [localName], [code], [tag], [description]) VALUES (N'21dae181-228c-40de-848f-0e5a1045269e', NULL, N'92ff19d0-8863-4142-a19c-9a74d6f9353d', N'vibration', N'vibration', NULL, N'')
 	INSERT [dbo].[KitTypeAttribute] ([guid], [parentTemplateAttributeGuid], [templateGuid], [localName], [code], [tag], [description]) VALUES (N'1990bf7d-9612-431e-b103-0fc10e41e807', NULL, N'92ff19d0-8863-4142-a19c-9a74d6f9353d', N'rpm', N'rpm', NULL, N'')
@@ -39,6 +39,8 @@ BEGIN
 	INSERT [dbo].[KitTypeAttribute] ([guid], [parentTemplateAttributeGuid], [templateGuid], [localName], [code], [tag], [description]) VALUES (N'57394742-ea69-435a-883f-c6b815a53ab4', NULL, N'92ff19d0-8863-4142-a19c-9a74d6f9353d', N'fire_detector', N'fireDetector', NULL, N'')
 	
 	INSERT INTO [dbo].[AdminUser] ([guid],[email],[companyGuid],[firstName],[lastName],[password],[isActive],[isDeleted],[createdDate]) VALUES (NEWID(),'admin@elevator.com','AB469212-2488-49AD-BC94-B3A3F45590D2','Elevator','admin','Softweb#123',1,0,GETUTCDATE())
+
+	INSERT [dbo].[UserDasboardWidget] ([Guid], [DashboardName], [Widgets], [IsDefault], [IsSystemDefault], [UserId], [IsActive], [IsDeleted], [CreatedDate], [CreatedBy], [ModifiedDate], [ModifiedBy]) VALUES (N'2AFB7737-9F88-4BD1-9447-14D495E40DE0', N'Default Dashboard', N'[]', 0, 1, N'00000000-0000-0000-0000-000000000000', 1, 0, CAST(N'2020-07-06T14:52:39.567' AS DateTime), N'00000000-0000-0000-0000-000000000000', CAST(N'2020-07-06T14:53:09.490' AS DateTime), N'00000000-0000-0000-0000-000000000000')
 
 	UPDATE [dbo].[Configuration]
 	SET [value]  = '1'

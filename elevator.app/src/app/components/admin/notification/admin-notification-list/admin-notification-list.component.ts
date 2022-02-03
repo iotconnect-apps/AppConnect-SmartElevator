@@ -29,11 +29,17 @@ export class AdminNotificationListComponent implements OnInit {
     this.getRuleList();
   }
 
+  /**
+	* For Aearch text call back
+	**/
   searchTextCallback($event) {
     this.searchText = $event;
     this.getRuleList();
-
   }
+
+  /**
+	* For Fire  model for Delete rule confirmation
+	**/
   deleteModel(RuleModel) {
     this.deleteAlertDataModel = {
       title: "Delete Notification",
@@ -54,22 +60,28 @@ export class AdminNotificationListComponent implements OnInit {
     });
   }
 
+  /**
+	* For Delete rule
+	**/
   deleteRule(guid) {
     this.spinner.show();
     this.ruleService.deleteRule(guid).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess) {
-        this._notificationService.add(new Notification('success', "Notification has been deleted successfully."));
+        this._notificationService.handleResponse({message:"Notification deleted successfully."},"success");
         this.getRuleList();
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', 'Notification not found'));
+      this._notificationService.handleResponse({message:"Notification not found"},"error");
     });
   }
 
+  /**
+	* For manage rule status
+	**/
   activeInactiveRule(id: string, isActive: boolean, name: string) {
     var status = isActive == true ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
     var mapObj = {
@@ -100,22 +112,28 @@ export class AdminNotificationListComponent implements OnInit {
 
   }
 
-
+  /**
+	* For update rule status
+	**/
   updateRuleStatus(guid, status) {
     this.spinner.show();
     this.ruleService.updateRuleStatus(guid, status).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess) {
-        this._notificationService.add(new Notification('success', "Notification status has been updated successfully."));
+        this._notificationService.handleResponse({message:"Notification status updated successfully"},"success");
         this.getRuleList();
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
+
+  /**
+	* For Get rule list
+	**/
   getRuleList() {
     this.spinner.show();
     this.ruleService.getRuleList(this.searchText).subscribe(response => {

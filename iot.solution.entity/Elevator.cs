@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 
@@ -9,10 +10,13 @@ namespace iot.solution.entity
     {
         public Guid? Guid { get; set; }
         public Guid CompanyGuid { get; set; }
+        [Required]
         public Guid EntityGuid { get; set; }
         public Guid TemplateGuid { get; set; }
         public Guid TypeGuid { get; set; }
+        [Required]
         public string UniqueId { get; set; }
+        [Required]
         public string Name { get; set; }
         public string Building { get; set; }
         public string Wing { get; set; }

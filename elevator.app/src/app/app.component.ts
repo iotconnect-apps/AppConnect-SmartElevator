@@ -7,7 +7,8 @@ import {
 } from '@angular/router'
 import { ConfigService } from './services/config/config.service';
 import { ReactiveFormConfig } from '@rxweb/reactive-form-validators';
-
+import { ApiConfigService } from './services';
+import { Location } from '@angular/common';
 
 @Component({
 	selector: 'app-root',
@@ -16,6 +17,8 @@ import { ReactiveFormConfig } from '@rxweb/reactive-form-validators';
 })
 
 export class AppComponent {
+  protected envName = ApiConfigService.settings.env.name;
+  location: Location;
 	loading: boolean = true;
 	isLoginURL = false;
 	loginURL = '';
@@ -29,7 +32,13 @@ export class AppComponent {
 		private renderer: Renderer2,
 		private router: Router,
 		private titleService: Title,
-		private configService: ConfigService) {
+    private configService: ConfigService) {
+
+    if (location.protocol === 'http:' &&
+      (this.envName.toLowerCase() == 'avnet' || this.envName.toLowerCase() == 'prod'
+        || this.envName.toLowerCase() == 'poc' || this.envName.toLowerCase() == 'uat')) {
+      window.location.href = location.href.replace('http', 'https');
+    }
 
 		//this is used for to configure validation message globally. https://www.rxweb.io/api/reactive-form-config
 		ReactiveFormConfig.set({

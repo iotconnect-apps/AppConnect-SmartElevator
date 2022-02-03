@@ -39,13 +39,16 @@ namespace iot.solution.service.Data
             _kitTypeCommandRepository = kitTypeCommandRepository;
             _iotConnectClient = new IotConnectClient(SolutionConfiguration.BearerToken, SolutionConfiguration.Configuration.EnvironmentCode, SolutionConfiguration.Configuration.SolutionKey);
         }
-        public string GetIotTemplateGuidByName(string templateName)
+        public string GetIotTemplateGuidByCode()
         {
             string templateGuid = string.Empty;
-            var templates = _iotConnectClient.Template.All(new IoTConnect.Model.PagingModel() { SearchText = templateName, PageNo = 1, PageSize = 1000 }).Result;
+            var templates = _iotConnectClient.Template.All(new IoTConnect.Model.PagingModel() { PageNo = 1, PageSize = 1000 }).Result;
             if (templates != null && templates.data != null && templates.data.Any())
             {
-                templateGuid = templates.data[0].Guid;
+                var template = templates.data.Where(t => t.Code.Equals(SolutionConfiguration.Configuration.DefaultIoTTemplateCode)).FirstOrDefault();
+                if (template != null)
+                    templateGuid = template.Guid;
+
             }
             return templateGuid;
         }
@@ -235,17 +238,24 @@ namespace iot.solution.service.Data
             List<Entity.LookupItem> result = new List<Entity.LookupItem>();
             try
             {
-                var template = _kitTypeRepository.FindBy(t => t.Guid == templateId).FirstOrDefault();
-                if (template != null)
+                List<IoTConnect.Model.AttributeResult> attributeList = _iotConnectClient.Template.AllAttribute(templateId.ToString(), new IoTConnect.Model.PagingModel() { }, "").Result.data;
+
+                result = attributeList.Select(x => new Entity.LookupItem()
                 {
-                    // result.Add(new LookupItem() { Text = string.Format("{0} (Used by Parent)", template.Tag), Value = "" });
-                    result.AddRange(from t in _kitTypeAttributeRepository.FindBy(t => t.TemplateGuid == templateId).ToList()
-                                    select new Entity.LookupItem()
-                                    {
-                                        Text = t.LocalName,
-                                        Value = t.Guid.ToString() //string.Format("{0}({1})", t.LocalName, t.Tag)
-                                    });
-                }
+                    Text =  x.localName ,
+                    Value = x.guid.ToString().ToUpper()                   
+                }).ToList();
+                //var template = _kitTypeRepository.FindBy(t => t.Guid == templateId).FirstOrDefault();
+                //if (template != null)
+                //{
+                //    // result.Add(new LookupItem() { Text = string.Format("{0} (Used by Parent)", template.Tag), Value = "" });
+                //    result.AddRange(from t in _kitTypeAttributeRepository.FindBy(t => t.TemplateGuid == templateId).OrderBy(x => x.LocalName).ToList()
+                //                    select new Entity.LookupItem()
+                //                    {
+                //                        Text = t.LocalName,
+                //                        Value = t.Guid.ToString() //string.Format("{0}({1})", t.LocalName, t.Tag)
+                //                    });
+                //}
             }
             catch (Exception ex)
             {
@@ -258,16 +268,23 @@ namespace iot.solution.service.Data
             List<Entity.LookupItem> result = new List<Entity.LookupItem>();
             try
             {
-                var template = _kitTypeRepository.FindBy(t => t.Guid == templateId).FirstOrDefault();
-                if (template != null)
+                List<IoTConnect.Model.AllCommandResult> attributeList = _iotConnectClient.Template.AllTemplateCommand(templateId.ToString(), new IoTConnect.Model.PagingModel() { }).Result.data;
+
+                return attributeList.Select(x => new Entity.LookupItem()
                 {
-                    result = (from t in _kitTypeCommandRepository.GetAll()
-                              select new Entity.LookupItem()
-                              {
-                                  Text = t.Name,
-                                  Value = t.Guid.ToString()
-                              }).ToList();
-                }
+                    Text = x.name,
+                    Value = x.guid.ToUpper()
+                }).ToList();
+                //var template = _kitTypeRepository.FindBy(t => t.Guid == templateId).FirstOrDefault();
+                //if (template != null)
+                //{
+                //    result = (from t in _kitTypeCommandRepository.GetAll()
+                //              select new Entity.LookupItem()
+                //              {
+                //                  Text = t.Name,
+                //                  Value = t.Guid.ToString()
+                //              }).ToList();
+                //}
             }
             catch (Exception ex)
             {
@@ -399,6 +416,24 @@ namespace iot.solution.service.Data
                           }).ToList();
             }
             return result;
+        }
+
+        public Entity.SearchResult<List<Entity.ElevatorLookupDetail>> ElevatorLookupByCompany()
+        {
+            try
+            {
+                var result = _deviceRepository.List(new Entity.SearchRequest { CompanyId = Convert.ToString(SolutionConfiguration.CompanyId), PageNumber = -1, PageSize = -1, OrderBy = "", SearchText = "" });
+                return new Entity.SearchResult<List<Entity.ElevatorLookupDetail>>()
+                {
+                    Items = result.Items.Select(p => Mapper.Configuration.Mapper.Map<Entity.ElevatorLookupDetail>(p)).ToList(),
+                    Count = result.Count
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorLog(ex, this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+                return new Entity.SearchResult<List<Entity.ElevatorLookupDetail>>();
+            }
         }
 
         public Entity.BaseResponse<List<Entity.BuildingElevatorLookup>> ElevatorLookupByBuilding(Guid buildingId)

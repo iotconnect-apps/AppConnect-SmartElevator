@@ -22,7 +22,7 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
   @Input('IsOpenPage') IsOpenPage: boolean;
   @Input('email') email: string;
   @ViewChild('cardInfo', { static: false }) cardInfo: ElementRef;
-  userCardMaster:any;
+  userCardMaster: any;
   myForm: FormGroup;
   stripe: any;
   elements: any;
@@ -63,7 +63,6 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngAfterViewInit() {
     this.getStripeKey();
-
   }
 
   ngOnDestroy() {
@@ -71,7 +70,9 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
     this.card.destroy();
   }
 
-
+  /**
+   * For Get Stripe Key
+   * */
   getStripeKey(search?: string) {
     this.spinner.show();
     this.lookupService.getNoAuthSripeKey().subscribe(response => {
@@ -80,15 +81,18 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
         this.cardLayout(response.data);
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
 
   }
 
+  /**
+   * For manage card layout
+   * */
   cardLayout(instanceType) {
     this.stripe = Stripe(instanceType);
     this.elements = this.stripe.elements();
@@ -114,12 +118,18 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
     this._paymentService.paymentData.card = this.card;
   }
 
+  /**
+   * For change card
+   * */
   ChangeCard() {
     this.isChangeCard = true;
     this.cardIdChecked = false;
     this.setSelectedValue('');
   }
 
+  /**
+   * For card handler
+   * */
   onChange({ error }) {
     if (error) {
       this.error = error.message;
@@ -129,6 +139,9 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
     this.cd.detectChanges();
   }
 
+  /**
+  * For set selected value for payment
+  * */
   setSelectedValue(cardId: string) {
     if (cardId == '') {
       this._paymentService.paymentData.cardId = '';
@@ -144,6 +157,9 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
+  /**
+ * For manage selected value of payment
+ * */
   setSelectedValuePayment(flag: boolean) {
     if (flag == true) {
       this.IsInvoice = false;
@@ -163,7 +179,9 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
-
+  /**
+  * For set auto renew check
+  * */
   setAutoRenewCheck() {
 
     var isAuto = this.myForm.value.AutoRenewal == false ? null : this.myForm.value.AutoRenewal;
@@ -176,6 +194,9 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
 
   }
 
+  /**
+  * For manage slider
+  * */
   toggle(event: MatSlideToggleChange) {
     if (event.checked) {
       this.IsAutoStatus = "On";
@@ -198,7 +219,9 @@ export class PaymentComponent implements AfterViewInit, OnDestroy, OnInit {
 
   }
 
-
+  /**
+  * For convert text to lowercase
+  * */
   convertToLowercase(text: string): string {
     if (text) {
       return text.toLowerCase().replace(/[\s]/g, '');

@@ -1,5 +1,4 @@
-﻿
-/*******************************************************************
+﻿/*******************************************************************
 DECLARE @output INT = 0
 	,@fieldName	nvarchar(255)
 	,@newid UNIQUEIDENTIFIER
@@ -19,9 +18,9 @@ SELECT @output status, @fieldName fieldname,@newid newid
 
 001	SGH-97	22-01-2020	[Nishit Khakhi]	Added Initial Version to Add Update Role
 *******************************************************************/
-
 create PROCEDURE [dbo].[Role_AddUpdate]
 (	@companyGuid		UNIQUEIDENTIFIER
+	,@guid				UNIQUEIDENTIFIER	= NULL
 	,@name	 			NVARCHAR(100)		= NULL
 	,@description		NVARCHAR(500)		= NULL
 	,@isAdminRole		BIT					= 0
@@ -44,6 +43,7 @@ BEGIN
         (
             SELECT 'Role_AddUpdate' AS '@procName'
 			, CONVERT(nvarchar(MAX),@companyGuid) AS '@companyGuid'
+			, CONVERT(nvarchar(MAX),@guid) AS '@guid'
 			, @name AS '@name'
 			, @description AS '@description'
 			, CONVERT(nvarchar(MAX),@isAdminRole) AS '@isAdminRole'
@@ -60,18 +60,60 @@ BEGIN
 	SET @fieldName = 'Success'
 	
 	BEGIN TRY
-		
-		IF EXISTS (SELECT TOP 1 1 FROM [Role] (NOLOCK) WHERE companyguid = @companyguid AND [isdeleted]=0 AND [name]=@name)
+		IF @guid IS NOT NULL
+		BEGIN
+			SET @newid = @guid
+		END
+		ELSE IF EXISTS (SELECT TOP 1 1 FROM [Role] (NOLOCK) WHERE companyguid = @companyguid AND [isdeleted]=0 AND [name]=@name)
 		BEGIN
 			SELECT TOP 1 @newid = [guid] FROM [Role] (NOLOCK) WHERE companyguid = @companyguid AND [isdeleted]=0 AND [name]=@name
 		END
 		ELSE
 		BEGIN
-			SET @newid = NEWID()
+			SET @newid = ISNULL((SELECT TOP 1 [guid] FROM [Role] (NOLOCK) WHERE companyguid = @companyguid AND [isdeleted]=1 AND [name]=@name),NEWID())
 		END
 		
 		BEGIN TRAN
-			IF NOT EXISTS (SELECT TOP 1 1 FROM [Role] (NOLOCK) WHERE [guid] = @newid AND [isdeleted]=0 and companyguid = @companyguid AND [name]=@name)
+			IF EXISTS (SELECT TOP 1 1 FROM [Role] (NOLOCK) WHERE companyguid = @companyguid AND [isdeleted]=1 AND [name]=@name)
+			BEGIN
+				UPDATE [Role]
+				SET [isDeleted] = 0
+					,[description] = ISNULL(@description,[description])
+					,[updatedBy] = @invokingUser
+					,[updatedDate] = @dt
+					,[guid]=@newid
+				WHERE companyguid = @companyguid AND [isdeleted]=1 AND [name]=@name
+			END
+			ELSE IF @guid IS NOT NULL
+			BEGIN
+				INSERT INTO [dbo].[Role]
+			           ([guid]
+			           ,[companyGuid]
+			           ,[name]
+					   ,[description]
+					   ,[isAdminRole]
+			           ,[isActive]
+					   ,[isDeleted]
+			           ,[createdDate]
+			           ,[createdBy]
+			           ,[updatedDate]
+			           ,[updatedBy]
+						)
+			     VALUES
+			           (@newid
+			           ,@companyGuid
+			           ,@name
+			           ,@description
+			           ,@isAdminRole
+					   ,1
+			           ,0
+			           ,@dt
+			           ,@invokingUser				   
+					   ,@dt
+					   ,@invokingUser				   
+				       );
+			END
+			ELSE IF NOT EXISTS (SELECT TOP 1 1 FROM [Role] (NOLOCK) WHERE [guid] = @newid AND [isdeleted]=0 and companyguid = @companyguid AND [name]=@name)
 			BEGIN	
 				INSERT INTO [dbo].[Role]
 			           ([guid]
@@ -142,4 +184,3 @@ BEGIN
 	END
 	END CATCH
 END
-

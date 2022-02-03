@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
 import { CookieService } from 'ngx-cookie-service'
 import { ApiConfigService, NotificationService } from 'app/services';
+import * as moment from 'moment'
 
 @Injectable({
   providedIn: 'root'
@@ -54,11 +55,19 @@ export class BuildingService {
 
   getBuidingOverview(buildingGuid) {
 
-    return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/dashboard/getbuidingdetailoverview/' + buildingGuid).map(response => {
+    return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/dashboard/getbuidingdetailoverview/' + buildingGuid,{
+      params: {
+        currentDate:moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        timeZone: moment().utcOffset().toString()
+      }
+      }).map(response => {
       return response;
     });
   }
 
+  getTimeZone() {
+    return /\((.*)\)/.exec(new Date().toString())[1];
+  }
   getElevatorLookup(buildingId) {
 
     return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/lookup/getelevatorlookupbybuilding/' + buildingId).map(response => {

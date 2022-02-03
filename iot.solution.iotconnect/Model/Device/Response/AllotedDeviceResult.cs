@@ -128,6 +128,18 @@ namespace IoTConnect.Model
         public int available { get; set; }
         public int total { get; set; }
     }
+
+    public class StompReaderData
+    {
+        public string cpId { get; set; }
+        public string host { get; set; }
+        public int isSecure { get; set; }
+        public string password { get; set; }
+        public int port { get; set; }
+        public string url { get; set; }
+        public string user { get; set; }
+        public string vhost { get; set; }
+    }
     public class DeviceConnectionStatus
     {
         public bool IsConnected { get; set; }

@@ -1,0 +1,43 @@
+<div class="dashboard-chart text-center">
+	<div class="m-t-20 topwidget-icon" *ngIf="widget.widgetProperty?.contents?.entitiesIcon?.isRequired">
+      <i [ngStyle]="{'color':widget.widgetProperty?.contents?.entitiesIcon?.fontColor}"  class="{{widget?.widgetProperty?.contents?.entitiesIcon?.iconClass}} fa-{{widget?.widgetProperty?.contents?.entitiesIcon?.fontSize}}x"></i>
+    </div>
+	<div class="m-t-10 widget-readings-box">
+		<div class="widget-reading-left">
+			<h4 [ngStyle]="{
+			'font-size':widget.widgetProperty?.contents?.count?.fontSize+'px',
+			'font-family':widget.widgetProperty?.contents?.count?.fontFamily,
+			'color':widget.widgetProperty?.contents?.count?.fontColor}">{{count.total}} KW</h4>
+		</div>
+		<div *ngIf="count.elevators.length > 0"  class="widget-reading-right">
+			<ul class="reading-item-list">
+				<li class="reading-item">
+					<span class="elevator-status-indicator status-success"></span>
+					<span [ngStyle]="{
+					'font-size':widget.widgetProperty?.contents?.active?.fontSize+'px',
+					'font-family':widget.widgetProperty?.contents?.active?.fontFamily,
+					'color':widget.widgetProperty?.contents?.active?.fontColor}">{{count.elevators[0]['name']}} (B.1)&nbsp;</span>
+					<span [ngStyle]="{
+					'font-size':widget.widgetProperty?.contents?.activeCount?.fontSize+'px',
+					'font-family':widget.widgetProperty?.contents?.activeCount?.fontFamily,
+					'color':widget.widgetProperty?.contents?.activeCount?.fontColor}">{{count.elevators[0]['consumption']}} KW</span>
+				</li>
+				<li class="reading-item">
+					<span class="elevator-status-indicator status-danger"></span>
+					<span [ngStyle]="{
+					'font-size':widget.widgetProperty?.contents?.inactive?.fontSize+'px',
+					'font-family':widget.widgetProperty?.contents?.inactive?.fontFamily,
+					'color':widget.widgetProperty?.contents?.inactive?.fontColor}">{{count.elevators[1]['name']}} (B.1)&nbsp;</span>
+					<span [ngStyle]="{
+					'font-size':widget.widgetProperty?.contents?.inactiveCount?.fontSize+'px',
+					'font-family':widget.widgetProperty?.contents?.inactiveCount?.fontFamily,
+					'color':widget.widgetProperty?.contents?.inactiveCount?.fontColor}">{{count.elevators[1]['consumption']}} KW</span>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<p [ngStyle]="{
+		'font-size':widget.widgetProperty?.contents?.entities?.fontSize+'px',
+		'font-family':widget.widgetProperty?.contents?.entities?.fontFamily,
+		'color':widget.widgetProperty?.contents?.entities?.fontColor}">{{widget?.widgetProperty?.contents?.entities?.title}}</p>
+</div>

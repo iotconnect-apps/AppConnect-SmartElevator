@@ -12,7 +12,7 @@ namespace iot.solution.model.Repository.Interface
         List<Entity.LookupItem> GetLookup(Guid companyId);
         List<Entity.LookupItem> GetWingLookup(Guid companyId);
         ActionStatus Manage(Model.Entity request);
-        Entity.BaseResponse<List<Entity.BuildingOverviewResponse>> GetBuildingOverview(Guid buildingId, string frequency);
+        Entity.BaseResponse<List<Entity.BuildingOverviewResponse>> GetBuildingOverview(Guid buildingId, string frequency, DateTime currentDate, string timeZone);
 
 
     }

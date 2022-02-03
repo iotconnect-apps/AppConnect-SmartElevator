@@ -21,6 +21,39 @@ namespace iot.solution.model.Repository.Implementation
             _uow = unitOfWork;
         }
 
+        public Entity.ElevatorMaintenance Get(Guid id, DateTime currentDate, string timeZone)
+        {
+            List<Entity.ElevatorMaintenance> result = new List<Entity.ElevatorMaintenance>();
+            Entity.ElevatorMaintenance maintenanceDetail = new Entity.ElevatorMaintenance();
+            try
+            {
+                DateTime dateValue;
+                if (DateTime.TryParse(currentDate.ToString(), out dateValue))
+                {
+                    dateValue = dateValue.AddMinutes(-double.Parse(timeZone));
+                }
+                logger.InfoLog(Constants.ACTION_ENTRY, "DeviceMaintenanceRepository.GetMaintenence");
+                using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
+                {
+                    List<DbParameter> parameters = sqlDataAccess.CreateParams(component.helper.SolutionConfiguration.CurrentUserId, "v1");
+                    parameters.Add(sqlDataAccess.CreateParameter("guid", id, DbType.Guid, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("currentDate", dateValue, DbType.DateTime, ParameterDirection.Input));
+                    DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[ElevatorMaintenance_Get]", CommandType.StoredProcedure, null), parameters.ToArray());
+                    result = DataUtils.DataReaderToList<Entity.ElevatorMaintenance>(dbDataReader, null);
+                    if (result.Count > 0)
+                    {
+                        maintenanceDetail = result[0];
+                    }
+                }
+                logger.InfoLog(Constants.ACTION_EXIT, "DeviceMaintenanceRepository.GetUpComingList");
+            }
+            catch (Exception ex)
+            {
+                logger.ErrorLog(Constants.ACTION_EXCEPTION, ex);
+            }
+            return maintenanceDetail;
+        }
+
         public List<Entity.ElevatorMaintenanceResponse> GetUpComingList(Entity.ElevatorMaintenanceRequest request)
         {
             List<Entity.ElevatorMaintenanceResponse> result = new List<Entity.ElevatorMaintenanceResponse>();
@@ -29,12 +62,19 @@ namespace iot.solution.model.Repository.Implementation
                 logger.InfoLog(Constants.ACTION_ENTRY, "ElevatorMaintenanceRepository.GetUpComingList");
                 using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
                 {
+                    DateTime dateValue;
+
+                    if (DateTime.TryParse(request.CurrentDate.Value.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(request.TimeZone));
+                    }
                     List<DbParameter> parameters = sqlDataAccess.CreateParams(component.helper.SolutionConfiguration.CurrentUserId, "v1");
                     parameters.Add(sqlDataAccess.CreateParameter("companyguid", component.helper.SolutionConfiguration.CompanyId, DbType.Guid, ParameterDirection.Input));
                     if(request.BuildingGuid.HasValue)
                     parameters.Add(sqlDataAccess.CreateParameter("entityGuid", request.BuildingGuid, DbType.Guid, ParameterDirection.Input));
                     if (request.ElevatorGuid.HasValue)
                         parameters.Add(sqlDataAccess.CreateParameter("guid", request.ElevatorGuid, DbType.Guid, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("currentDate", dateValue, DbType.DateTime, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("count", DbType.Int32, ParameterDirection.Output, 16));
                     DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[ElevatorMaintenance_UpComingList]", CommandType.StoredProcedure, null), parameters.ToArray());
                     result = DataUtils.DataReaderToList<Entity.ElevatorMaintenanceResponse>(dbDataReader, null);
@@ -56,6 +96,11 @@ namespace iot.solution.model.Repository.Implementation
                 logger.InfoLog(Constants.ACTION_ENTRY, "ElevatorMaintenanceRepository.Get");
                 using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
                 {
+                    DateTime dateValue;
+                    if (DateTime.TryParse(request.CurrentDate.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(request.TimeZone));
+                    }
                     List<DbParameter> parameters = sqlDataAccess.CreateParams(component.helper.SolutionConfiguration.CurrentUserId, request.Version);
                     if (!request.EntityId.Equals(Guid.Empty))
                     {
@@ -66,6 +111,7 @@ namespace iot.solution.model.Repository.Implementation
                     parameters.Add(sqlDataAccess.CreateParameter("pagesize", request.PageSize, DbType.Int32, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("pagenumber", request.PageNumber, DbType.Int32, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("orderby", request.OrderBy, DbType.String, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("currentDate", dateValue, DbType.DateTime, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("count", DbType.Int32, ParameterDirection.Output, 16));
                     DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[ElevatorMaintenance_List]", CommandType.StoredProcedure, null), parameters.ToArray());
                     result.Items = DataUtils.DataReaderToList<Entity.ElevatorMaintenanceDetail>(dbDataReader, null);
@@ -92,11 +138,9 @@ namespace iot.solution.model.Repository.Implementation
                 {
                     List<DbParameter> parameters = sqlDataAccess.CreateParams(component.helper.SolutionConfiguration.CurrentUserId, component.helper.SolutionConfiguration.Version);
                     parameters.Add(sqlDataAccess.CreateParameter("companyGuid", request.CompanyGuid, DbType.Guid, ParameterDirection.Input));
-
-                    parameters.Add(sqlDataAccess.CreateParameter("status", request.Status, DbType.String, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("description", request.Description, DbType.String, ParameterDirection.Input));
-                    parameters.Add(sqlDataAccess.CreateParameter("scheduleddate", request.ScheduledDate, DbType.DateTime, ParameterDirection.Input));
-
+                    parameters.Add(sqlDataAccess.CreateParameter("startDateTime", request.StartDateTime, DbType.DateTime, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("endDateTime", request.EndDateTime, DbType.DateTime, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("culture", component.helper.SolutionConfiguration.Culture, DbType.String, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("enableDebugInfo", component.helper.SolutionConfiguration.EnableDebugInfo, DbType.String, ParameterDirection.Input));
                     if (request.Guid == null || request.Guid == Guid.Empty)
@@ -126,7 +170,6 @@ namespace iot.solution.model.Repository.Implementation
                         result.Success = false;
                         result.Message = parameters.Where(p => p.ParameterName.Equals("fieldname")).FirstOrDefault().Value.ToString();
                     }
-
                 }
                 logger.InfoLog(Constants.ACTION_EXIT, "ElevatorMaintenanceRepository.Manage");
             }

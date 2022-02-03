@@ -1,7 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var app_config_service_1 = require("./app-config/app-config.service");
-exports.AppConfigService = app_config_service_1.AppConfigService;
 var dashboard_service_1 = require("./dashboard/dashboard.service");
 exports.DashboardService = dashboard_service_1.DashboardService;
 var device_service_1 = require("./device/device.service");
@@ -31,5 +29,7 @@ exports.ElevatorService = elevator_service_1.ElevatorService;
 var scheduled_maintenance_service_1 = require("./scheduled-maintenance/scheduled-maintenance.service");
 exports.ScheduledMaintenanceService = scheduled_maintenance_service_1.ScheduledMaintenanceService;
 var users_service_1 = require("./users/users.service");
-exports.UsersService = users_service_1.UsersService;
+exports.UserService = users_service_1.UserService;
+var api_config_service_1 = require("./api-config/api-config.service");
+exports.ApiConfigService = api_config_service_1.ApiConfigService;
 //# sourceMappingURL=index.js.map

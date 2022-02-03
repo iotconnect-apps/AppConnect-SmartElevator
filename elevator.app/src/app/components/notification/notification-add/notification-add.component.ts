@@ -119,6 +119,9 @@ export class NotificationAddComponent implements OnInit {
     this.createFormGroup();
   }
 
+  /**
+  * For get user lookup
+  */
   getUsersLookup() {
     this.spinner.show();
     this.ruleService.getUsersLookup().subscribe(response => {
@@ -137,6 +140,9 @@ export class NotificationAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For get role lookup
+  */
   getRoleLookup() {
     this.spinner.show();
     this.ruleService.getRoleLookup().subscribe(response => {
@@ -154,6 +160,10 @@ export class NotificationAddComponent implements OnInit {
       this.roleList = [];
     });
   }
+
+  /**
+  * For get Entity lookup
+  */
   getEntityLookup() {
     this.spinner.show();
     this.ruleService.getEntityLookup().subscribe(response => {
@@ -172,6 +182,9 @@ export class NotificationAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For manage permission check
+  */
   checkIschecked(modulePermission, index) {
     if ((modulePermission & (1 << index)) >> index) {
       return true;
@@ -180,10 +193,17 @@ export class NotificationAddComponent implements OnInit {
     }
   }
 
+  /**
+  * For manage attribute
+  */
   clickAttribute(tag, name) {
     let val = this.postForm.controls['conditionText'].value;
     this.postForm.patchValue({ conditionText: val + tag + '#' + name });
   }
+
+  /**
+  * For get notification detail
+  */
   getNotificationDetail() {
     this.spinner.show();
     this.ruleService.getUserRuleDetail(this.notificationGuid).subscribe(response => {
@@ -222,15 +242,18 @@ export class NotificationAddComponent implements OnInit {
         this.getEntityLookup();
       } else {
         this.router.navigate(['notification']);
-        this._notificationService.add(new Notification('error', 'Notification not found'));
+        this._notificationService.handleResponse({message:'Notification not found'},"error");
       }
     }, error => {
       this.spinner.hide();
       this.router.navigate(['notification']);
-      this._notificationService.add(new Notification('error', 'Notification not found'));
+      this._notificationService.handleResponse({message:'Notification not found'},"error");
     });
   }
 
+  /**
+  * For create form group for notification
+  */
   createFormGroup() {
     this.postForm = new FormGroup({
       templateGuid: new FormControl('', [Validators.required]),
@@ -260,6 +283,9 @@ export class NotificationAddComponent implements OnInit {
 
   }
 
+  /**
+  * For check entity
+  */
   checkEntiy() {
     if (this.applyTo === '1') {
       this.applyTo = '2'
@@ -269,6 +295,9 @@ export class NotificationAddComponent implements OnInit {
     this.postForm.patchValue({ applyTo: this.applyTo });
   }
 
+  /**
+  * For get selected notification
+  */
   getSelectedNotification() {
     this.selectedNotification = _.map(
       this.postForm.controls.notificationTypes["controls"],
@@ -285,6 +314,9 @@ export class NotificationAddComponent implements OnInit {
     this.getSelectedNotificationName();
   }
 
+  /**
+  * For get selected notification name
+  */
   getSelectedNotificationName() {
     this.selectedNotification = _.filter(
       this.selectedNotification,
@@ -296,6 +328,9 @@ export class NotificationAddComponent implements OnInit {
     );
   }
 
+  /**
+  * For create notification
+  */
   createNotifications(notesInputs) {
     const arr = notesInputs.map(note => {
       return new FormControl(note.selected || false);
@@ -303,6 +338,9 @@ export class NotificationAddComponent implements OnInit {
     return new FormArray(arr);
   }
 
+  /**
+  * For rule type change
+  */
   ruleTypeChange() {
     this.ruleType = this.postForm.controls['ruleType'].value;
     this.postForm.patchValue({
@@ -313,10 +351,17 @@ export class NotificationAddComponent implements OnInit {
     this.attributeGuidValidationMsg = false;
     this.condtionValueValidationMsg = false;
   }
+
+  /**
+  * For rule apply on change
+  */
   ruleApplyONChange() {
     this.applyTo = this.postForm.controls['applyTo'].value;
   }
 
+  /**
+  * For submit notification
+  */
   submitForm() {
 
     this.checkSubmitStatus = true;
@@ -399,14 +444,14 @@ export class NotificationAddComponent implements OnInit {
         if (response.isSuccess === true) {
           this.router.navigate(['/notification']);
           if (this.isEdit) {
-            this._notificationService.add(new Notification('success', "Rule has been updated successfully."));
+            this._notificationService.handleResponse({message:'Rule updated successfully.'},"success");
           } else {
-            this._notificationService.add(new Notification('success', "Rule has been added successfully."));
+            this._notificationService.handleResponse({message:'Rule created successfully.'},"success");
 
           }
         }
         else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
@@ -414,15 +459,19 @@ export class NotificationAddComponent implements OnInit {
 
     }
   }
+
+  /**
+  * For verify condition
+  */
   verifyCondition() {
     if (this.postForm.controls['conditionText'].value && this.postForm.controls['templateGuid'].value) {
       this.ruleService.verifyCondtion({ expression: this.postForm.controls['conditionText'].value, deviceTemplateGuid: this.postForm.controls['templateGuid'].value }).subscribe(response => {
         this.spinner.hide();
         if (response.isSuccess === true) {
-          this._notificationService.add(new Notification('success', "Condition verified successfully"));
+          this._notificationService.handleResponse({message:"Condition verified successfully"},"success");
         }
         else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
@@ -430,13 +479,17 @@ export class NotificationAddComponent implements OnInit {
     }
     else{
       if(this.postForm.controls['templateGuid'].value === ''){
-        this._notificationService.add(new Notification('error', "please select template"));
+        this._notificationService.handleResponse({message:"please select template"},"error");
       }else{
-        this._notificationService.add(new Notification('error', "please enter condtions"));
+        this._notificationService.handleResponse({message:"please enter condtions"},"error");
       }
     }
   }
 
+  
+  /**
+  * For get template lookup
+  */
   getTemplateLookup() {
     this.gatewayService.getTemplateLookup().subscribe(response => {
       if (response.isSuccess === true) {
@@ -455,6 +508,9 @@ export class NotificationAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For get Template Attribute Lookup
+  */
   getTemplateAttributeLookup() {
     if (this.postForm.controls['templateGuid'].value !== '') {
 
@@ -512,6 +568,9 @@ export class NotificationAddComponent implements OnInit {
     }
   }
 
+  /**
+  * For get Severity level Lookup
+  */
   getSeveritylevelLookup() {
     this.spinner.show();
     this.ruleService.getSeveritylevelLookup().subscribe(response => {
@@ -532,6 +591,9 @@ export class NotificationAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For get Condition Lookup
+  */
   getConditionLookup() {
     this.spinner.show();
     this.ruleService.getConditionLookup().subscribe(response => {

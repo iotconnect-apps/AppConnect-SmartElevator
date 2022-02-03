@@ -19,10 +19,19 @@ import { Notification, NotificationService } from 'app/services';
 	selector: 'app-flash-message',
 	template: `
     <div class="notifications">
-        <div (click)="hide(note)" class="{{ note.type }}"
+        <div (click)="hide(note)" style="padding: 16px 30px;" class="{{ note.type }}"
                 *ngFor="let note of _notes">
             <span class="closebtn">&times;</span>
-            {{ note.message }}
+            <ng-container *ngIf="!note.message.length">
+                <span [innerHTML]="note.message"></span>
+            </ng-container>
+            <ng-container *ngIf="note.message.length > 0">
+            <ul>
+                <li style="list-style-type: disc;" *ngFor="let err of note.message;let i=index;">
+                    <p [innerHTML]="err"></p>
+                </li>
+            </ul>
+            </ng-container>
         </div>
     </div>    `,
 	styles: [`
@@ -34,7 +43,9 @@ import { Notification, NotificationService } from 'app/services';
             z-index:9999;
             color:#fff;
         }
-
+        p{
+            margin:0px !important;
+        }
         .notifications div{
             text-overflow: initial;
             box-shadow: 0 7px 10px 0 rgba(0, 0, 0, .22),
@@ -88,9 +99,11 @@ export class FlashMessageComponent {
 	public _notes: Notification[];
 
 	constructor(private _notifications: NotificationService) {
-		this._notes = new Array<Notification>();
+        this._notes = new Array<Notification>();
+        this._notes=[];
 		this._notifications.noteAdded.subscribe(note => {
-			this._notes.push(note);
+            this._notes.push(note);
+            console.log(this._notes);
 			setTimeout(() => { this.hide.bind(this)(note) }, 7000);
 		});
 	}

@@ -4,7 +4,7 @@ import { FormControl, FormGroup, Validators, FormBuilder } from '@angular/forms'
 import { NgxSpinnerService } from 'ngx-spinner'
 import { Notification, NotificationService, GatewayService } from 'app/services';
 import { CustomValidators } from 'app/helpers/custom.validators';
-import { UsersService } from 'app/services';
+import { UserService } from 'app/services';
 
 @Component({
   selector: 'app-user-add',
@@ -45,7 +45,7 @@ export class UserAddComponent implements OnInit {
     private _notificationService: NotificationService,
     private activatedRoute: ActivatedRoute,
     private spinner: NgxSpinnerService,
-    public userService: UsersService,
+    public userService: UserService,
     public gatewayService: GatewayService,
   ) {
     this.activatedRoute.params.subscribe(params => {
@@ -67,6 +67,9 @@ export class UserAddComponent implements OnInit {
     this.getTimezoneList();
   }
 
+  /**
+  * For Create form group for user
+  */
   createFormGroup() {
     this.userForm = new FormGroup({
       firstName: new FormControl('', [Validators.required, Validators.pattern('^[A-Za-z0-9 ]+$')]),
@@ -82,6 +85,9 @@ export class UserAddComponent implements OnInit {
     };
   }
 
+    /**
+  * For Get role list
+  */
   getRoleList() {
     this.spinner.show();
     this.userService.getroleList().subscribe(response => {
@@ -89,6 +95,10 @@ export class UserAddComponent implements OnInit {
       this.roleList = response.data;
     });
   }
+
+    /**
+  * For Get time zone list
+  */
   getTimezoneList() {
     this.spinner.show();
     this.userService.getTimezoneList().subscribe(response => {
@@ -96,6 +106,10 @@ export class UserAddComponent implements OnInit {
       this.timezoneList = response.data;
     });
   }
+
+      /**
+  * For Get entity list
+  */
   getEntityList() {
     this.spinner.show();
     this.gatewayService.getBuildingLookup().subscribe(response => {
@@ -104,6 +118,9 @@ export class UserAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For Add New User
+  */
   addUser() {
     this.checkSubmitStatus = true;
     let contactNo = this.userForm.value.contactNo.replace("(", "")
@@ -133,18 +150,22 @@ export class UserAddComponent implements OnInit {
         if (response.isSuccess === true) {
           this.spinner.hide();
           if (response.data.updatedBy != null) {
-            this._notificationService.add(new Notification('success', "User has been updated successfully."));
+            this._notificationService.handleResponse({message:"User updated successfully."},"success");
           } else {
-            this._notificationService.add(new Notification('success', "User has been added successfully."));
+            this._notificationService.handleResponse({message:"User created successfully."},"success");
           }
           this.router.navigate(['/users']);
         } else {
           this.spinner.hide();
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       })
     }
   }
+
+    /**
+  * For Get User List
+  */
   getUserDetails(userGuid) {
     this.spinner.show();
     this.userService.getUserDetails(userGuid).subscribe(response => {
@@ -155,6 +176,10 @@ export class UserAddComponent implements OnInit {
       }
     });
   }
+
+      /**
+  * For Convert text to lowercase
+  */
   getdata(val) {
     return val = val.toLowerCase();
   }

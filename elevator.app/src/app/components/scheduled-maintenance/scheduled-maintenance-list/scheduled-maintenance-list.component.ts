@@ -25,10 +25,10 @@ export class ScheduledMaintenanceListComponent implements OnInit {
     pageNumber: 0,
     pageSize: 10,
     searchText: '',
-    sortBy: 'scheduledDate desc'
+    sortBy: 'startDateTime desc'
   };
   deleteAlertDataModel: DeleteAlertDataModel;
-  displayedColumns: string[] = ['building', 'wing', 'name', 'scheduledDate', 'status', 'actions'];
+  displayedColumns: string[] = ['building', 'wing', 'name', 'startDateTime', 'endDateTime', 'status', 'actions'];
   scheduledMaintenanceList = [];
 
   constructor(private router: Router,
@@ -44,8 +44,12 @@ export class ScheduledMaintenanceListComponent implements OnInit {
   }
 
   getLocaleDate(date) {
-    var now = moment(date).format('YYYY-MM-DD HH:mm:ss');
-    return moment.utc(now).local().format('MM/DD/YYYY');
+    // var now = moment(date).format('YYYY-MM-DD HH:mm:ss');
+    // return moment.utc(now).local().format('MM/DD/YYYY');
+
+    var stillUtc = moment.utc(date).toDate();
+    var local = moment(stillUtc).local().format('MMM DD, YYYY hh:mm:ss A');
+    return local;
   }
 
   /**
@@ -66,6 +70,9 @@ export class ScheduledMaintenanceListComponent implements OnInit {
     this.router.navigate(['/maintenance/add']);
   }
 
+  /**
+   * For open delete maintenance confirmation model
+   * */
   deleteModel(model: any) {
     this.deleteAlertDataModel = {
       title: "Delete Scheduled Maintenance",
@@ -86,23 +93,29 @@ export class ScheduledMaintenanceListComponent implements OnInit {
     });
   }
 
+  /**
+   * For delete maintenance
+   * */
   deleteMaintenance(guid) {
     this.spinner.show();
     this._service.deleteMaintenance(guid).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Scheduled Maintenance")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Scheduled Maintenance")},"success");
         this.getMaintenanceList();
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+   * For handle paggination call back
+   * */
   onPageSizeChangeCallback(pageSize) {
     this.searchParameters.pageSize = pageSize;
     this.searchParameters.pageNumber = 1;
@@ -110,6 +123,9 @@ export class ScheduledMaintenanceListComponent implements OnInit {
     this.getMaintenanceList();
   }
 
+  /**
+   * For get maintenance list
+   * */
   getMaintenanceList() {
     this.spinner.show();
     this._service.getScheduledMaintenanceList(this.searchParameters).subscribe(response => {
@@ -125,15 +141,18 @@ export class ScheduledMaintenanceListComponent implements OnInit {
         //console.log(this.scheduledMaintenanceList);
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.scheduledMaintenanceList = [];
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+   * For set order of schedule list
+   * */
   setOrder(sort: any) {
     console.log(sort);
     if (!sort.active || sort.direction === '') {
@@ -148,6 +167,9 @@ export class ScheduledMaintenanceListComponent implements OnInit {
 
   }
 
+  /**
+   * For manage paggination
+   * */
   ChangePaginationAsPageChange(pagechangeresponse) {
     this.searchParameters.pageSize = pagechangeresponse.pageSize;
     this.searchParameters.pageNumber = pagechangeresponse.pageIndex;

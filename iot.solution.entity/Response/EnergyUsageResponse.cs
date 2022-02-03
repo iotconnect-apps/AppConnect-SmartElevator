@@ -34,7 +34,7 @@ namespace iot.solution.entity.Response
         public string EnergyConsumption { get; set; }
     }
 
-    public class ConfgurationResponse
+    public class StompReaderData
     {
         public string cpId { get; set; }
         public string host { get; set; }

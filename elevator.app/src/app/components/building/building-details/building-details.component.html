@@ -1,9 +1,9 @@
 <section class="content-header">
   <h1>
     <img class="mr-1 mb-1" style="cursor: pointer;" src="../../../../assets/images/back-arrow-icon.svg" (click)="location.back();" />
-   {{buildingname}}
+    {{buildingname}}
   </h1>
-  </section>
+</section>
 <div class="content p-t-0">
 
   <div class="row dashboardtop-widget m-b-30">
@@ -176,18 +176,20 @@
           </div>
         </div>
         <mat-card class="dashboard-card mat-card">
-            <div  *ngIf="alerts.length==0" class="centerclass">
+          <div *ngIf="alerts.length==0" class="centerclass">
             No records found
           </div>
-          <ul style="height:955px;" *ngIf="!alerts.length" class="alerts-dashboard alerts-dashboard-legend">
-            <li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
-              <span class="alert-info-title">{{alert['message']}}</span>
-              <span class="alerts-info">{{alert['buildingName']}}</span>
-              <span class="alerts-info text-right p-r-10">{{getLocalDate(alert['eventDate'])}}</span>
-            </li>
+          <ng-scrollbar class="my-scrollbar details-alert-scroll" trackX="false" trackY="true" autohide="true"
+                        [compact]="false" #scrollRef>
+            <ul style="height:955px;" *ngIf="alerts.length" class="alerts-dashboard alerts-dashboard-legend">
+              <li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
+                <span class="alert-info-title">{{alert['message']}}</span>
+                <span class="alerts-info">{{alert['buildingName']}}</span>
+                <span class="alerts-info text-right p-r-10">{{getLocalDate(alert['eventDate'])}}</span>
+              </li>
 
-          </ul>
-        
+            </ul>
+          </ng-scrollbar>
           <div class="alert-indicator-wrapper">
             <div class="alert-indicator-list">
               <div class="alert-indicator Critical">
@@ -238,17 +240,19 @@
       <form [formGroup]="wingForm" (ngSubmit)="manageWing();" autocomplete="off" class="form-horizontal common-form">
         <div class="row">
           <div class="col-12">
-            <label class="form-label">Name<b>*</b></label>
-            <mat-form-field>
-              <input matInput name="name" formControlName="name" type="text" maxlength="50"
-                     [(ngModel)]="wingObject['name']" class="form-control" tabindex="1" placeholder="Name">
-              <div class="form-control-feedback" *ngIf="wingForm.controls['name'].errors">
-                <p class="form-tooltip-error sm " [ngClass]="{'error':true}"
-                   *ngIf="wingForm.controls['name'].errors.required && checkSubmitStatus">
-                  Please enter Wing Name
-                </p>
-              </div>
-            </mat-form-field>
+            <fieldset class="form-group form-field">
+              <label class="form-label">Name<b>*</b></label>
+              <mat-form-field>
+                <input matInput name="name" formControlName="name" type="text" maxlength="50"
+                       [(ngModel)]="wingObject['name']" class="form-control" tabindex="1" placeholder="Name">
+                <div class="form-control-feedback" *ngIf="wingForm.controls['name'].errors">
+                  <p class="form-tooltip-error sm " [ngClass]="{'error':true}"
+                     *ngIf="wingForm.controls['name'].errors.required && checkSubmitStatus">
+                    Please enter Wing Name
+                  </p>
+                </div>
+              </mat-form-field>
+            </fieldset>
           </div>
           <div class="col-12">
             <label class="form-label">Description</label>
@@ -259,7 +263,7 @@
           </div>
           <div class="col-12">
 
-            <label for="myFile" class="upload-file">
+            <label for="myFile" class="upload-file" title=".jpg, .jpeg, .png">
               <input formControlName="imageFile" #myFile id="myFile" (change)="handleImageInput($event)" class="upload-image" type="file"
                      accept=".jpg, .jpeg, .png" tabindex="3" />
 

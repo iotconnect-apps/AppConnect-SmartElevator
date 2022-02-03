@@ -7,6 +7,7 @@ using IoTConnect.Model;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace IoTConnect.Common
@@ -78,7 +79,40 @@ namespace IoTConnect.Common
             }
 
         }
+        public async Task<DataResponse<IdentityResult>> Identity(string token)
+        {
+            try
+            {
+                var portalAuthApi = await _ioTConnectAPIDiscovery.GetPortalUrl(_envCode, _solutionKey, IoTConnectBaseURLType.UserBaseUrl);
+                string formattedUrl = String.Format(portalAuthApi, Constants.authVersion);              
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    var dataResponse = await GetIdentityAccess(formattedUrl, token, _solutionKey);
+                    return new DataResponse<IdentityResult>(null)
+                    {
+                        data = dataResponse,
+                        status = true
+                    };
+                }
+                else
+                {
+                    return new DataResponse<IdentityResult>(null);
+                }
 
+            }
+            catch (IoTConnectException ex)
+            {
+                List<ErrorItemModel> errorItemModels = new List<ErrorItemModel>();
+                errorItemModels.AddRange(ex.error);
+
+                return new DataResponse<IdentityResult>(null)
+                {
+                    errorMessages = errorItemModels,
+                    message = ex.message,
+                    status = false
+                };
+            }
+        }
         /// <summary>
         /// Refresh IotConnect token. Requires bearer token and refresh token.
         /// </summary>
@@ -158,6 +192,26 @@ namespace IoTConnect.Common
             return await formattedUrl
                          .WithHeaders(new { Content_type = Constants.contentType, Authorization = Constants.basicTokenType + basicToken, solution_key = solutionKey })
                          .PostJsonAsync(model).ReceiveJson<LoginResult>();
+        }
+        /// <summary>
+        /// Get Identity access.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <param name="authUrl"></param>
+        /// <param name="basicToken"></param>
+        /// <param name="solutionKey"></param>
+        /// <returns></returns>
+        private async Task<IdentityResult> GetIdentityAccess(string authUrl, string bearerToken, string solutionKey)
+        {
+           
+            string accessTokenUrl = string.Concat(authUrl, AuthApi.IdentityUrl);
+            string formattedUrl = String.Format(accessTokenUrl, Constants.authVersion);
+            var data = await formattedUrl
+                 .WithHeaders(new {  Authorization = Constants.bearerTokenType + bearerToken })
+                        .GetAsync().ReceiveJson<object>();
+            IdentityResult result = JsonConvert.DeserializeObject<IdentityResult>(data.ToString());
+            return result;
         }
         #endregion
     }

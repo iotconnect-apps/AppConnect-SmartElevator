@@ -34,7 +34,10 @@ namespace host.iot.solution.Filter
             actionContext.HttpContext.Items.Add(new KeyValuePair<object, object>("ActionRquestData", actionContext.ActionArguments));
             actionContext.HttpContext.Items.Add(new KeyValuePair<object, object>("ControllerName", controllerActionDescriptor.ControllerName));
             actionContext.HttpContext.Items.Add(new KeyValuePair<object, object>("ActionName", controllerActionDescriptor.ActionName));
-
+            if (!actionContext.ModelState.IsValid)
+            {
+                actionContext.Result = new ValidationFailedResult(actionContext.ModelState);
+            }
             base.OnActionExecuting(actionContext);
         }
 

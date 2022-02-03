@@ -4,6 +4,20 @@ using System.Text;
 
 namespace iot.solution.entity
 {
+    public class ValidateCompanyRequest
+    {
+        public string CompanyName { get; set; }
+        public string Email { get; set; }
+    }
+    public class CompanyListItem
+    {
+        public string email { get; set; }
+        public string companyName { get; set; }
+    }
+    public class CompanyList
+    {
+        public List<CompanyListItem> data { get; set; }
+    }
     public class SaveCompanyRequest
     {
         public string SubscriptionToken { get; set; }

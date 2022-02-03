@@ -60,7 +60,6 @@ export class HardwareAddComponent implements OnInit {
    * */
   createFormGroup() {
     this.deviceForm = new FormGroup({
-      //guid: new FormControl(null),
       kitTypeGuid: new FormControl('', [Validators.required]),
       kitCode: new FormControl('', [Validators.required, Validators.pattern('^[A-Za-z0-9 ]+$')]),
       uniqueId: new FormControl('', [Validators.required, Validators.pattern('^[A-Za-z0-9]+$')]),
@@ -118,13 +117,13 @@ export class HardwareAddComponent implements OnInit {
         this.spinner.hide();
         if (response.isSuccess === true) {
           this.router.navigate(['/admin/hardwarekits']);
-          this._notificationService.add(new Notification('success', successMessage));
+          this._notificationService.handleResponse({message:successMessage},"success");
         } else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       });
 
     }

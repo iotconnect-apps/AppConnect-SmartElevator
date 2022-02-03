@@ -12,6 +12,7 @@ namespace component.helper.Interface
         Response.CountryResponse GetCountryData();
         Response.StateResponse GetStateData(string countryID);
         Response.SubscriptionPlanResponse GetSubscriptionPlans(string solutionID);
+        Entity.BaseResponse<bool> ValidateCompany(Entity.ValidateCompanyRequest requestData);
         Entity.SearchResult<List<Entity.SubscriberData>> SubscriberList(string solutionID, Entity.SearchRequest request);
         Entity.SaveCompanyResponse CreateCompany(Entity.SaveCompanyRequest requestData);      
        Entity.SubsciberCompanyDetails GetSubscriberDetails(string solutionCode, string userEmail);

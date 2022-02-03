@@ -20,8 +20,8 @@ namespace iot.solution.service.Interface
         List<Entity.LookupItem> WingLookup(Guid templateId);
 
         List<Entity.LookupItemWithStatus> ElevatorLookup(Guid templateId);
-
-        string GetIotTemplateGuidByName(string templateName);
+        Entity.SearchResult<List<Entity.ElevatorLookupDetail>> ElevatorLookupByCompany();
+        string GetIotTemplateGuidByCode();
         List<Entity.LookupItem> GetSensors(Guid templateId, Guid deviceId);
         List<Entity.LookupItem> GetAllTemplateFromIoT();
         List<Entity.KitTypeAttribute> GetAllAttributesFromIoT(string templateGuid);

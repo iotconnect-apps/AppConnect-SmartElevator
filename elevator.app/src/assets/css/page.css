@@ -1694,7 +1694,7 @@ ul.sidebar-menu > li i.icon-sidebar{
 }
 .main-sidebar ul.sidebar-menu > li:hover .icon-maintenance,
 .main-sidebar ul.sidebar-menu > li.active i.icon-maintenance{
-  background-position: -358px -35px;
+  background-position: -358px -32px;
 }
 .dashboard-chart{
   height: 100%;
@@ -1804,9 +1804,10 @@ span.legend {
     background: #fb9823;
 }
 .alerts-dashboard-legend{
-  margin-bottom: 40px !important;
+  margin-bottom: 40px !important; 
 }
-.alerts-dashboard{
+.details-alert-scroll{padding-bottom:60px;}
+.alerts-dashboard {
   /* max-height: 335px; */
 }
 .maintenance-card-list{
@@ -2357,3 +2358,36 @@ span.legend {
   color: #8a8a8a;
 }
 /* Alerts updated end */
+
+body.sidebar-close:not(.sidebar-collapse) .favicon-logo img {
+  display: none;
+}
+
+
+@media (max-width: 1440px) {
+  .logopart .favicon-logo{
+    padding-left: 0;
+    text-align: center;
+  }
+  .favicon-logo img{
+    width: 26px;
+  }
+}
+.callback-section{
+  height: 260px;
+  width: 475px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  background-color: #fff;
+  padding: 40px 30px;
+  border-radius: 6px;
+}
+.callback-text{
+margin-top: auto;
+margin-bottom: 30px;
+}
+.callback-text h4{
+color: #919fa9;
+font-size: 22px;
+}

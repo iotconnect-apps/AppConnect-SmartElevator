@@ -8,16 +8,19 @@ namespace iot.solution.entity
         [Key]
         public Guid Id { get; set; }
         [MaxLength(100)]
+        [Required]
         public string Email { get; set; }
         [Required]
         public string FirstName { get; set; }
         [MaxLength(50)]
+        [Required]
         public string LastName { get; set; }
         [Required]
         public Guid TimeZoneGuid { get; set; }
         [MaxLength(100)]
         public string ImageName { get; set; }
         [MaxLength(25)]
+        [Required]
         public string ContactNo { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

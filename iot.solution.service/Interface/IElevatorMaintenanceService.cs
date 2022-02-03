@@ -9,7 +9,7 @@ namespace iot.solution.service.Interface
     public interface IElevatorMaintenanceService
     {
         List<Entity.ElevatorMaintenance> Get();
-        Entity.ElevatorMaintenance Get(Guid id);
+        Entity.ElevatorMaintenance Get(Guid id, DateTime currentDate, string timeZone);
         Entity.ActionStatus Manage(Entity.ElevatorMaintenance request);
         Entity.ActionStatus Delete(Guid id);
         Entity.SearchResult<List<Entity.ElevatorMaintenanceDetail>> List(Entity.SearchRequest request);

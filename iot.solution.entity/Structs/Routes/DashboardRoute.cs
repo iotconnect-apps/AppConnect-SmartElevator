@@ -20,6 +20,15 @@ namespace iot.solution.entity.Structs.Routes
             public const string GetDeviceTripDetail = "dashboard.getdevicetripdetail";
             public const string GetBuidingDetailOverview = "dashboard.getbuidingdetailoverview";
             public const string GetDevicesPeakHours = "dashboard.getdevicespeakhours";
+
+            public const string GetMasterWidget = "configuration.getmasterwidget";
+            public const string GetMasterWidgetById = "configuration.getmasterwidgetbyid";
+            public const string Manage = "configuration.managemasterwidget";
+            public const string DeleteMasterWidget = "configuration.deletemasterwidget";
+            public const string GetUserWidget = "configuration.getuserwidget";
+            public const string GetUserWidgetById = "configuration.getuserwidgetbyid";
+            public const string ManageUserWidget = "configuration.manageuserwidget";
+            public const string DeleteUserWidget = "configuration.deleteuserwidget";
         }
         public struct Route
         {
@@ -36,6 +45,16 @@ namespace iot.solution.entity.Structs.Routes
             public const string GetBuidingDetailOverview = "getbuidingdetailoverview/{entityId}";
             public const string GetDeviceTripDetail = "getdevicetripdetail/{elevatorId}";
             public const string GetDevicesPeakHours = "getdevicespeakhours";
+
+            public const string GetMasterWidget = "getmasterwidget";
+            public const string GetMasterWidgetById = "getmasterwidgetbyid/{widgetId}";
+            public const string Manage = "managemasterwidget";
+            public const string DeleteMasterWidget = "deletemasterwidget/{id}";
+
+            public const string GetUserWidget = "getuserwidget";
+            public const string GetUserWidgetById = "getuserwidgetbyid/{widgetId}";
+            public const string ManageUserWidget = "manageuserwidget";
+            public const string DeleteUserWidget = "deleteuserwidget/{id}";
         }
     }
 }

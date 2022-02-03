@@ -91,5 +91,9 @@ export class LookupService {
       return response;
     });
   }
-
+ validate(data) {
+    return this.httpClient.post<any>(this.apiServer.baseUrl + 'api/subscriber/validatecompany', data).map(response => {
+      return response;
+    });
+  }
 }

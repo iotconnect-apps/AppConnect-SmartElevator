@@ -70,9 +70,9 @@ BEGIN
 
 	BEGIN TRAN
 
-			IF(@action = 'insert') 
+			IF(@action = 'insert' OR @action = 'update') 
 			BEGIN
-				;WITH ExistingRole AS
+			/*	;WITH ExistingRole AS
 				(
 					SELECT [guid]
 					FROM dbo.[Role] d (NOLOCK)
@@ -94,7 +94,18 @@ BEGIN
 				INNER JOIN #tempRole te
 				ON te.[guid] = d.[guid]    
 				WHERE te.hasGuid = 1
-			END  
+			END  */
+
+			MERGE dbo.[Role] AS target  
+			USING #tempRole AS source ON (target.[name] = source.[name] OR target.[guid] = source.[guid]) and target.companyGuid=@companyGuid  
+			WHEN MATCHED THEN
+				UPDATE SET [name] = source.[name],[IsDeleted]=0,target.[guid] = source.[guid],
+						[description] = source.[description]
+			WHEN NOT MATCHED THEN  
+				INSERT ([guid], [companyGuid], [name], [description], [isActive], [isDeleted],[createdDate])  
+				VALUES (source.[guid], @companyGuid, source.[name], source.[description], source.[isActive], source.[isDeleted], GETUTCDATE())  ;
+						
+			END
 			
 			IF(@action = 'delete') 
 			BEGIN
@@ -144,5 +155,4 @@ BEGIN
 		ROLLBACK TRANSACTION
 	END
 	END CATCH
-END      
-
+END

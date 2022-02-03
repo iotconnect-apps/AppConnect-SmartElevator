@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core'
 import { Router } from '@angular/router'
 import { NgxSpinnerService } from 'ngx-spinner'
-import { UsersService } from 'app/services';
+import { UserService } from 'app/services';
 import { MatDialog, MatPaginator, MatSort, MatTableDataSource } from '@angular/material'
 import { DeleteDialogComponent } from '../../../components/common/delete-dialog/delete-dialog.component';
 import { tap } from 'rxjs/operators';
@@ -44,7 +44,7 @@ export class UserListComponent implements OnInit {
     public dialog: MatDialog,
     private spinner: NgxSpinnerService,
     private router: Router,
-    private userService: UsersService,
+    private userService: UserService,
     public _appConstant: AppConstant,
     private _notificationService: NotificationService
   ) { }
@@ -54,15 +54,25 @@ export class UserListComponent implements OnInit {
 
   }
 
+  /**
+	* For manage filter
+	**/
   applyFilter(filterValue: string) {
     filterValue = filterValue.trim(); // Remove whitespace
     filterValue = filterValue.toLowerCase(); // Datasource defaults to lowercase matches
     this.dataSource.filter = filterValue;
   }
+
+  /**
+	* For go to add user section
+	**/
   clickAdd() {
     this.router.navigate(['/users/add']);
   }
 
+  /**
+	* For set order user list
+	**/
   setOrder(sort: any) {
     console.log(sort);
     if (!sort.active || sort.direction === '') {
@@ -72,9 +82,9 @@ export class UserListComponent implements OnInit {
     this.getUserList();
   }
 
-  log(obj) {
-    console.log(obj);
-  }
+  /**
+	* For manage paggination
+	**/
   onPageSizeChangeCallback(pageSize) {
     this.searchParameters.pageSize = pageSize;
     this.searchParameters.pageNumber = 1;
@@ -82,6 +92,9 @@ export class UserListComponent implements OnInit {
     this.getUserList();
   }
 
+  /**
+	* For change paggination page
+	**/
   ChangePaginationAsPageChange(pagechangeresponse) {
     this.searchParameters.pageNumber = pagechangeresponse.pageIndex;
     this.searchParameters.pageSize = pagechangeresponse.pageSize;
@@ -89,6 +102,9 @@ export class UserListComponent implements OnInit {
     this.getUserList();
   }
 
+  /**
+	* For search text call back
+	**/
   searchTextCallback(filterText) {
     this.searchParameters.searchText = filterText;
     this.searchParameters.pageNumber = 0;
@@ -96,6 +112,9 @@ export class UserListComponent implements OnInit {
     this.isSearch = true;
   }
 
+  /**
+	* For get user list
+	**/
   getUserList() {
     this.spinner.show();
     this.userService.getUserlist(this.searchParameters).subscribe(response => {
@@ -106,7 +125,7 @@ export class UserListComponent implements OnInit {
         this.userList = response.data.items;
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.userList = [];
         this.totalRecords = 0;
       }
@@ -114,7 +133,7 @@ export class UserListComponent implements OnInit {
       this.userList = [];
       this.totalRecords = 0;
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
@@ -122,6 +141,9 @@ export class UserListComponent implements OnInit {
     this.applyFilter(filterValue);
   }
 
+  /**
+	* For open delete user confirmation model
+	**/
   deleteModel(userModel: any) {
     this.deleteAlertDataModel = {
       title: "Delete User",
@@ -142,25 +164,31 @@ export class UserListComponent implements OnInit {
     });
   }
 
+  /**
+	* For delete user
+	**/
   deleteuser(guid) {
     this.spinner.show();
     this.userService.deleteUser(guid).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "User")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "User")},"success");
         this.getUserList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For manage user status
+	**/
   activeInactiveuser(id: string, isActive: boolean, fname: string, lname: string) {
     var status = isActive == false ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
     var mapObj = {
@@ -190,23 +218,27 @@ export class UserListComponent implements OnInit {
     });
 
   }
+
+  /**
+	* For change status
+	**/
   changeUserStatus(id, isActive) {
 
     this.spinner.show();
     this.userService.changeStatus(id, isActive).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "User")));
+        this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "User")},"success");
         this.getUserList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 }

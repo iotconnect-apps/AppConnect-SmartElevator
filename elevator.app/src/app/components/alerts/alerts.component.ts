@@ -43,6 +43,9 @@ export class AlertsComponent implements OnInit {
     this.getAlertList();
   }
 
+  /**
+	* For convert UTC date to local time zone
+	**/
   getLocalDate(lDate) {
     var utcDate = moment.utc(lDate, 'YYYY-MM-DDTHH:mm:ss.SSS');
     // Get the local version of that date
@@ -52,6 +55,9 @@ export class AlertsComponent implements OnInit {
     
     }
 
+  /**
+	* For Get Alert List
+	**/
   getAlertList() {
     this.spinner.show();
     this.dashboardService.getAlertsList(this.searchParameters).subscribe(response => {
@@ -63,17 +69,19 @@ export class AlertsComponent implements OnInit {
       }
       else {
         this.alerts = [];
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.totalRecords = 0;
       }
     }, error => {
       this.alerts = [];
       this.totalRecords = 0;
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
-
+  /**
+	* For Set order of alerts
+	**/
   setOrder(sort: any) {
     if (!sort.active || sort.direction === '') {
       return;
@@ -82,7 +90,9 @@ export class AlertsComponent implements OnInit {
     this.getAlertList();
   }
 
-
+  /**
+	* For Manage Pagenation
+	**/
   onPageSizeChangeCallback(pageSize) {
     this.searchParameters.pageSize = pageSize;
     this.searchParameters.pageNumber = 1;
@@ -90,6 +100,9 @@ export class AlertsComponent implements OnInit {
     this.getAlertList();
   }
 
+  /**
+	* For change page size for Pagenation
+	**/
   ChangePaginationAsPageChange(pagechangeresponse) {
     this.searchParameters.pageNumber = pagechangeresponse.pageIndex;
     this.searchParameters.pageSize = pagechangeresponse.pageSize;
@@ -97,6 +110,9 @@ export class AlertsComponent implements OnInit {
     this.getAlertList();
   }
 
+  /**
+	* For call back of search text
+	**/
   searchTextCallback(filterText) {
     this.searchParameters.searchText = filterText;
     this.searchParameters.pageNumber = 0;

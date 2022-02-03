@@ -65,7 +65,6 @@ export class BulkuploadAddComponent implements OnInit {
   constructor(
     private router: Router,
     private _notificationService: NotificationService,
-    private activatedRoute: ActivatedRoute,
     private spinner: NgxSpinnerService,
     private deviceService: DeviceService,
     public _appConstant: AppConstant,
@@ -78,6 +77,9 @@ export class BulkuploadAddComponent implements OnInit {
     this.gettemplateLookup();
   }
 
+  /**
+  * For Download sample HK Json File  
+  **/
   download() {
     this.deviceService.getHardwarkitDownload().subscribe(response => {
       var myJSON = JSON.stringify(response);
@@ -85,6 +87,9 @@ export class BulkuploadAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For Create HK Form Group
+  **/
   createFormGroup() {
     this.bulkForm = new FormGroup({
       kit_list: new FormControl('', [Validators.required]),
@@ -92,6 +97,9 @@ export class BulkuploadAddComponent implements OnInit {
     });
   }
 
+  /**
+  * For Call Bulk Upload
+  **/
   uploadbulk() {
     this.checkSubmitStatus = true;
     if (this.bulkForm.status === "VALID") {
@@ -106,12 +114,12 @@ export class BulkuploadAddComponent implements OnInit {
             this.dataSource.paginator = this.paginator;
             this.tblshow = true
             this.formshow = true
-            this._notificationService.add(new Notification('success', " File verified successfully."));
+            this._notificationService.handleResponse({message:" File verified successfully."},"success");
           } else {
             // this.bulkForm.get('kit_list').setValue(null)
             // this.checkSubmitStatus = false;
             // this.myInputVariable.nativeElement.value = "";
-            // this._notificationService.add(new Notification('error', "File already exists"));
+            // this._notificationService.handleResponse({message:"File already exists"},"error");
 
             this.dataSource = new MatTableDataSource(response.data);
             this.dataSource.paginator = this.paginator;
@@ -120,14 +128,14 @@ export class BulkuploadAddComponent implements OnInit {
             this.bulkForm.get('kit_list').setValue(null)
              this.checkSubmitStatus = false;
              this.myInputVariable.nativeElement.value = "";
-            this._notificationService.add(new Notification('error', "File already exists"));
+             this._notificationService.handleResponse({message:"File already exists."},"error");
           }
 
         },
           (error: any) => {
             if (error == "Server Error") {
               this.spinner.hide();
-              this._notificationService.add(new Notification('error', 'Invalid json File'));
+              this._notificationService.handleResponse({message:"Invalid json File"},"error");
             }
 
           });
@@ -149,12 +157,9 @@ export class BulkuploadAddComponent implements OnInit {
     }
   }
 
-  removeFile(type) {
-    if (type === 'image') {
-      this.fileUrl = '';
-    }
-  }
-
+  /**
+  * For Show preview for image 
+  **/
   handleImageInput(event) {
     let files = event.target.files;
     if (files.length) {
@@ -201,12 +206,18 @@ export class BulkuploadAddComponent implements OnInit {
 
   }
 
+  /**
+  * For Get Template lookup
+  **/
   gettemplateLookup() {
     this.deviceService.getkittypes().subscribe(response => {
       this.templateList = response['data'];
     });
   }
 
+  /**
+  * For upload HK
+  **/
   Upload() {
     this.spinner.show();
     let successMessage = this._appConstant.msgCreated.replace("modulename", "Hardware Kit");
@@ -217,20 +228,22 @@ export class BulkuploadAddComponent implements OnInit {
       if (response.isSuccess === true) {
         this.gettemplateLookup();
         this.checkSubmitStatus = false;
-        this._notificationService.add(new Notification('success', successMessage));
+        this._notificationService.handleResponse({message:successMessage},"success");
         this.router.navigate(['/admin/hardwarekits']);
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }
       , error => {
         this.spinner.hide();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       });
   }
 
+  /**
+  * For cancel HK Bulk Upload
+  **/
   Cancel() {
-
     this.checkSubmitStatus = false;
     this.tblshow = false;
     this.formshow = false;

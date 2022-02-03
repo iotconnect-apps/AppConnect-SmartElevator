@@ -74,9 +74,14 @@ BEGIN
 	FROM @EntityXml.nodes('/items/item') a(b)
 
 		BEGIN TRAN
-
+			If not exists (select 1 from dbo.[Entity] where companyGuid=@companyGuid) and @action='update'
+			begin
+				set @action = 'insert'
+			end
 			IF(@action = 'insert') 
 			BEGIN
+				If not exists (select 1 from dbo.[Entity] where companyGuid=@companyGuid)
+			begin
 				;WITH
 					ExistingEntity
 					AS
@@ -89,7 +94,7 @@ BEGIN
 				SELECT DISTINCT [guid], [pGuid], [name], [address], [city], [state], [country], @companyGuid, [isDeleted], GETUTCDATE(),'00000000-0000-0000-0000-000000000000'
 				FROM #tempEntity te
 				WHERE NOT EXISTS ( SELECT 1 FROM ExistingEntity ee WHERE te.[guid] = ee.[guid] )
-
+				end
 			END
 			
 			IF(@action = 'update') 

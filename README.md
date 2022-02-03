@@ -1,2 +1,2 @@
-# AppConnect-SmartElevator
-AppConnect Smart Elevator
+# sw-iot-solution-elevator
+Amit Patel

@@ -69,13 +69,16 @@ export class BuildingAddComponent implements OnInit {
 
   }
 
+  /**
+	* For create form group for building
+	**/
   createFormGroup() {
     this.buildingForm = new FormGroup({
       parentEntityGuid: new FormControl(''),
       countryGuid: new FormControl(null, [Validators.required]),
       stateGuid: new FormControl(null, [Validators.required]),
-      city: new FormControl('', [Validators.required]),
-      name: new FormControl('',[Validators.required]),
+      city: new FormControl('', ),
+      name: new FormControl('',),
       zipcode: new FormControl('', [Validators.required, Validators.pattern('^[A-Z0-9 _]*$')]),
       description: new FormControl(''),
       address: new FormControl('', [Validators.required]),
@@ -87,6 +90,9 @@ export class BuildingAddComponent implements OnInit {
     });
   }
 
+  /**
+	* For remove image from array
+	**/
   imageRemove() {
     this.myFile.nativeElement.value = "";
     if (this.buildingObject['image'] == this.currentImage) {
@@ -109,6 +115,9 @@ export class BuildingAddComponent implements OnInit {
     }
   }
 
+  /**
+	* For open delete confirmation model
+	**/
   deleteImgModel() {
     this.deleteAlertDataModel = {
       title: "Delete Image",
@@ -129,6 +138,9 @@ export class BuildingAddComponent implements OnInit {
     });
   }
 
+  /**
+	* For delete building
+	**/
   deletebuildingImg() {
     this.spinner.show();
     this.buildingService.removeBuildingImage(this.buildingGuid).subscribe(response => {
@@ -136,16 +148,19 @@ export class BuildingAddComponent implements OnInit {
       if (response.isSuccess === true) {
         this.buildingObject['image'] = null;
         this.buildingForm.get('imageFile').setValue('');
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Building Image")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Building Image")},"success");
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For add new building
+	**/
   addBuilding() {
     this.checkSubmitStatus = true;
 
@@ -168,13 +183,13 @@ export class BuildingAddComponent implements OnInit {
         this.spinner.hide();
         if (response.isSuccess === true) {
           if (this.isEdit) {
-            this._notificationService.add(new Notification('success', "Building has been updated successfully."));
+            this._notificationService.handleResponse({message:"Building updated successfully."},"success");
           } else {
-            this._notificationService.add(new Notification('success', "Building has been added successfully."));
+            this._notificationService.handleResponse({message:"Building created successfully."},"success");
           }
           this.router.navigate(['/buildings']);
         } else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       })
     }else{
@@ -194,6 +209,9 @@ export class BuildingAddComponent implements OnInit {
     }
   }
 
+  /**
+	* For remove image file 
+	**/
   removeFile(type) {
     if (type === 'image') {
       this.fileUrl = '';
@@ -201,6 +219,9 @@ export class BuildingAddComponent implements OnInit {
     }
   }
 
+  /**
+	* For handle on file change
+	**/
   handleImageInput(event) {
     let files = event.target.files;
     var that=this;
@@ -238,6 +259,9 @@ export class BuildingAddComponent implements OnInit {
    
   }
 
+  /**
+	* For get building detail
+	**/
   getBuildingDetails(buildingGuid) {
     this.spinner.show();
     this.buildingService.getbuildingDetails(buildingGuid).subscribe(response => {
@@ -264,6 +288,9 @@ export class BuildingAddComponent implements OnInit {
     });
   }
 
+  /**
+	* For get country list
+	**/
   getcountryList() {
     this.spinner.show();
     this.buildingService.getcountryList().subscribe(response => {
@@ -272,6 +299,9 @@ export class BuildingAddComponent implements OnInit {
     });
   }
 
+  /**
+	* For get state using country
+	**/
   changeCountry(event) {
     this.buildingForm.controls['stateGuid'].setValue(null, { emitEvent: true })
     if(event){
@@ -283,9 +313,4 @@ export class BuildingAddComponent implements OnInit {
       });
     }
   }
-
-  getdata(val) {
-    return val = val.toLowerCase();
-  }
-
 }

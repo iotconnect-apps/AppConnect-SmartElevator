@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core'
 import { HttpClient } from '@angular/common/http'
 import { CookieService } from 'ngx-cookie-service'
-import { ApiConfigService, NotificationService } from 'app/services';
+import * as moment from 'moment'
+import { ApiConfigService, NotificationService } from '..';
 @Injectable()
 
 export class DashboardService {
@@ -17,7 +18,12 @@ export class DashboardService {
 
   getDashboardoverview() {
     let currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    return this.http.get<any>(this.apiServer.baseUrl + 'api/dashboard/overview').map(response => {
+    return this.http.get<any>(this.apiServer.baseUrl + 'api/dashboard/overview', {
+      params: {
+        currentDate: moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        timeZone: moment().utcOffset().toString()
+      }
+      }).map(response => {
       return response;
     });
   }
@@ -33,12 +39,17 @@ export class DashboardService {
     return this.http.get<any>(this.apiServer.baseUrl + 'api/dashboard/buildingoverview/' + buildingId, {
       params: {
         frequency: frequency,
+        currentDate: moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        timeZone: moment().utcOffset().toString()
       }
     }).map(response => {
       return response;
     });
   }
 
+  getTimeZone() {
+    return /\((.*)\)/.exec(new Date().toString())[1];
+  }
   getBuildingGraph(buildingId = '', frequency = 'd') {
     return this.http.post<any>(this.apiServer.baseUrl + 'api/chart/getoperationhours', {
       buildingId: buildingId,
@@ -65,6 +76,8 @@ export class DashboardService {
       params: {
         buildingId: buildingId,
         elevatorId: elevatorId,
+        currentDate: moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        timeZone: moment().utcOffset().toString()
       }
     }).map(response => {
       return response;

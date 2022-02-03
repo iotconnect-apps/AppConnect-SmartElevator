@@ -113,11 +113,124 @@ namespace component.helper
             }
             return result;
         }
+        public bool GetCompanyDetails(string solutionCode, string companyName)
+        {
+            Entity.CompanyList result = new Entity.CompanyList();
+            try
+            {
+                ///api/v1/consumers?displayDataOf=0&search=jessica.ref&solutionIdOrProductCode=PRD0000065&isActive=true
+
+                Entity.Subscriber response = _httpClientHelper.Get<Entity.Subscriber>(string.Format("{0}solution/subscriber?displayDataOf=0&productCode={1}&search={2}", apiBaseURL, solutionCode, companyName), _subcriptionAccessToken);
+                if (response.data != null && response.data.Count > 0)
+                {
+                    if (response.data.Where(t => t.companyName.Equals(companyName)).FirstOrDefault() != null)
+                    {
+                        return false;
+                    }
+                    else { return true; }
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorLog(ex, this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+            }
+            return false;
+        }
+        public Entity.BaseResponse<bool> ValidateCompany(Entity.ValidateCompanyRequest requestData)
+        {
+            InitSubscriptionToken();
+            Entity.BaseResponse<bool> response = new Entity.BaseResponse<bool>(false);
+            //bool IsCompanyExists = false;
+            bool IsEmailExists = false;
+            if (!string.IsNullOrEmpty(requestData.Email))
+            {
+                Entity.CompanyUserDetails existingConsumer = GetCompanyUserDetails(requestData.CompanyName, SolutionConfiguration.Configuration.SubscriptionAPI.SolutionId.ToString(), requestData.Email);
+                if (existingConsumer != null && existingConsumer.isExist)//Check email exists or not
+                {
+                    IsEmailExists = true;
+                    response.Message = existingConsumer.errorMessage;
+                }
+                else
+                {
+                    IsEmailExists = false;
+                }
+            }
+            //if (!string.IsNullOrEmpty(requestData.CompanyName))
+            //{
+            //    if (GetCompanyDetails(SolutionConfiguration.Configuration.SubscriptionAPI.SolutionCode, requestData.CompanyName))
+            //    {
+            //        IsCompanyExists = false;
+            //    }
+            //    else
+            //    {
+            //        IsCompanyExists = true;
+            //    }
+            //}
+            if (IsEmailExists)
+            {
+                response.IsSuccess = false;
+            }
+            else
+            {
+                response.IsSuccess = true;
+                response.Message = "";
+            }
+            return response;
+        }
+        private Entity.CompanyUserDetails GetCompanyUserDetails(string companyName, string solutionCode, string userEmail)
+        {
+            Entity.CompanyUserDetails result = new Entity.CompanyUserDetails();
+            try
+            {
+
+                Entity.ValidateUserRequest request = new Entity.ValidateUserRequest
+                {
+                    solutionId = solutionCode,
+                    email = userEmail,
+                    companyName = companyName
+                };
+
+                using (var response = _httpClientHelper.PUT<Entity.ValidateUserRequest>(string.Concat(apiBaseURL, "company/user/exist"), request, _subcriptionAccessToken))
+                {
+                    if ((int)response.StatusCode == (int)HttpStatusCode.OK)
+                    {
+                        result = JsonConvert.DeserializeObject<Entity.CompanyUserDetails>(response.Content.ReadAsStringAsync().Result);
+                    }
+                    else
+                    {
+                        List<Entity.ErrorMessageResponse> errorMessage = JsonConvert.DeserializeObject<List<Entity.ErrorMessageResponse>>(response.Content.ReadAsStringAsync().Result);
+                        if (errorMessage != null && errorMessage.Any())
+                        {
+                            throw new Exception(string.Format("{0}", errorMessage.FirstOrDefault().msg));
+                        }
+                        else
+                        {
+                            throw new Exception("Please try again. Something went wrong!!!");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorLog(ex, this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+            }
+            return result;
+        }
         public Entity.SaveCompanyResponse CreateCompany(Entity.SaveCompanyRequest requestData)
         {
             InitSubscriptionToken();
-            if (GetSubscriberDetails(requestData.SolutionCode, requestData.User.Email).email == "")//Check email exists or not
+            Entity.CompanyUserDetails existingConsumer = GetCompanyUserDetails(requestData.User.CompanyName, SolutionConfiguration.Configuration.SubscriptionAPI.SolutionId.ToString(), requestData.User.Email);
+            if (existingConsumer != null && existingConsumer.isExist)//Check email exists or not
             {
+                throw new Exception(existingConsumer.errorMessage);
+            }
+            else
+            {
+                requestData.SolutionCode = SolutionConfiguration.Configuration.SubscriptionAPI.SolutionId.ToString();
                 using (var response = _httpClientHelper.Post<Entity.SaveCompanyRequest>(string.Concat(apiBaseURL, "solution/company"), requestData, _subcriptionAccessToken))
                 {
                     if ((int)response.StatusCode == (int)HttpStatusCode.OK)
@@ -137,10 +250,6 @@ namespace component.helper
                         }
                     }
                 }
-            }
-            else
-            {
-                throw new Exception("Email address already registered. Try with another email!!!");
             }
         }
         public Response.SubscriptionPlanResponse GetSubscriptionPlans(string solutionID)

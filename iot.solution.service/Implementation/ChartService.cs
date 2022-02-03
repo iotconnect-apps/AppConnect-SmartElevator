@@ -12,18 +12,21 @@ using LogHandler = component.services.loghandler;
 using Request = iot.solution.entity.Request;
 using Response = iot.solution.entity.Response;
 using Entity = iot.solution.entity;
+using component.helper.Interface;
 namespace iot.solution.service.Implementation
 {
     public class ChartService : IChartService
     {
         private readonly IEntityRepository _entityRepository;
         private readonly LogHandler.Logger _logger;
+        private readonly IEmailHelper _emailHelper;
         public string ConnectionString = component.helper.SolutionConfiguration.Configuration.ConnectionString;
         //private readonly LogHandler.Logger _logger;
-        public ChartService(IEntityRepository entityRepository, LogHandler.Logger logger)//, LogHandler.Logger logger)
+        public ChartService(IEntityRepository entityRepository, LogHandler.Logger logger, IEmailHelper emailHelper)//, LogHandler.Logger logger)
         {
             _entityRepository = entityRepository;
            _logger = logger;
+            _emailHelper = emailHelper;
         }
 
 
@@ -181,6 +184,33 @@ namespace iot.solution.service.Implementation
                 _logger.ErrorLog(ex, this.GetType().Name, MethodBase.GetCurrentMethod().Name);
             }
             return result;
+        }
+        public Entity.ActionStatus SendSubscriptionNotification()
+        {
+            Entity.ActionStatus actionStatus = new Entity.ActionStatus(true);
+            try
+            {
+                _logger.InfoLog(LogHandler.Constants.ACTION_ENTRY, null, "", "", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+                using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
+                {
+                    List<DbParameter> parameters = new List<DbParameter>();
+                    System.Data.Common.DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[Get_UserSubscriptionEndData]", CommandType.StoredProcedure, null), parameters.ToArray());
+                    var result = DataUtils.DataReaderToList<Response.SubscriptionEndData>(dbDataReader, null);
+                    foreach (var item in result)
+                    {
+                        _emailHelper.SendSubscriptionOverEmail(item.CustomerName, item.ExpiryDate.ToString("dd MMM yyy"), item.Email);
+                    }
+                }
+                _logger.InfoLog(LogHandler.Constants.ACTION_EXIT, null, "", "", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorLog(ex, this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+                actionStatus.Success = false;
+                actionStatus.Message = ex.Message;
+            }
+            return actionStatus;
         }
     }
 }

@@ -8,6 +8,6 @@ namespace iot.solution.model.Repository.Interface
 {
     public interface IDashboardRepository:IGenericRepository<Model.Entity>
     {
-        Entity.BaseResponse<List<Entity.DashboardOverviewResponse>> GetStatistics();
+        Entity.BaseResponse<List<Entity.DashboardOverviewResponse>> GetStatistics(DateTime? currentDate = null, string timeZone = "");
     }
 }

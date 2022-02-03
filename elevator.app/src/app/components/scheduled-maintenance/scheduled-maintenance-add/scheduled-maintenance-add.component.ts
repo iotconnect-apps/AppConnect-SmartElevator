@@ -18,11 +18,11 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
 
   moduleName = "Schedule Maintenance";
   maintenanceForm: FormGroup;
-  maintenanceObject = {};
+  maintenanceObject: any = {};
   buildingList = [];
   wingList = [];
   elevatorList = [];
-  statusList = [{ "value": "Scheduled",'disabled':false }, { "value": "Under Maintenance",'disabled':false }, { "value": "Completed",'disabled':false }];
+  statusList = [{ "value": "Scheduled", 'disabled': false }, { "value": "Under Maintenance", 'disabled': false }, { "value": "Completed", 'disabled': false }];
   buttonname = "Submit";
   checkSubmitStatus = false;
   isEdit = false;
@@ -31,7 +31,8 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
   guid: any;
   maintenanceGuid: any;
   isCompleted = false;
-  today:any;
+  today: any;
+  public endDateValidate: any;
 
   constructor(private formBuilder: FormBuilder,
     private spinner: NgxSpinnerService,
@@ -55,8 +56,8 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
     });
     this.createFormGroup();
   }
-  minDate:Date;
-  maxDate:Date;
+  minDate: Date;
+  maxDate: Date;
   ngOnInit() {
     const current = new Date().getFullYear();
 
@@ -65,20 +66,21 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
     this.companyId = currentUser.userDetail.companyId;
     this.getBuildingList(this.companyId);
     this.today = new Date();
-    let  dd = this.today.getDate();
-    let mm = this.today.getMonth()+1; //January is 0!
+    let dd = this.today.getDate();
+    let mm = this.today.getMonth() + 1; //January is 0!
     let yyyy = this.today.getFullYear();
-    this.minDate = new Date(yyyy, mm-1, dd);
+    this.minDate = new Date(yyyy, mm - 1, dd);
     // this.maxDate = new Date(yyyy + 1, 11, 31);
 
-    if(dd<10){
-            dd='0'+dd
-        } 
-        if(mm<10){
-            mm='0'+mm
-        } 
+    if (dd < 10) {
+      dd = '0' + dd
+    }
+    if (mm < 10) {
+      mm = '0' + mm
+    }
 
-    this.today = yyyy+'-'+mm+'-'+dd;
+    this.today = yyyy + '-' + mm + '-' + dd;
+    this.endDateValidate = yyyy + '-' + mm + '-' + dd;
   }
 
   /**
@@ -89,10 +91,17 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
       entityGuid: new FormControl({ value: '', disabled: this.isEdit }, [Validators.required]),
       buildingGuid: new FormControl({ value: '', disabled: this.isEdit }, [Validators.required]),
       elevatorGuid: new FormControl({ value: '', disabled: this.isEdit }, [Validators.required]),
-      status: ['', Validators.required],
-      scheduledDate: ['', Validators.required],
+      startDateTime: ['', Validators.required],
+      endDateTime: ['', Validators.required],
       description: ['']
     });
+  }
+
+  /**
+   * for get current time zone
+   * */
+  getTimeZone() {
+    return /\((.*)\)/.exec(new Date().toString())[1];
   }
 
   /**
@@ -109,25 +118,30 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
       this.spinner.show();
       let currentUser = JSON.parse(localStorage.getItem('currentUser'));
       let data = this.maintenanceForm.value;
-      if (this.isEdit){
-        data.entityGuid=this.maintenanceForm.get('entityGuid').value;
-        data.buildingGuid=this.maintenanceForm.get('buildingGuid').value;
-        data.elevatorGuid=this.maintenanceForm.get('elevatorGuid').value;
-        data.guid=this.maintenanceGuid;
+
+      if (this.isEdit) {
+        data.entityGuid = this.maintenanceForm.get('entityGuid').value;
+        data.buildingGuid = this.maintenanceForm.get('buildingGuid').value;
+        data.elevatorGuid = this.maintenanceForm.get('elevatorGuid').value;
+        data.guid = this.maintenanceGuid;
       }
+
+      data.startDateTime = moment(data.startDateTime).format('YYYY-MM-DDTHH:mm:ss');
+      data.endDateTime = moment(data.endDateTime).format('YYYY-MM-DDTHH:mm:ss');
+      data.timeZone = moment().utcOffset();
 
       this._service.scheduleMaintenance(data).subscribe(response => {
         if (response.isSuccess === true) {
           this.spinner.hide();
           if (this.isEdit) {
-            this._notificationService.add(new Notification('success', "Scheduled Maintenance has been updated successfully."));
+            this._notificationService.handleResponse({message:"Maintenance updated successfully."},"success");
           } else {
-            this._notificationService.add(new Notification('success', "Scheduled Maintenance has been added successfully."));
+            this._notificationService.handleResponse({message:"Maintenance created successfully."},"success");
           }
           this.router.navigate(['/maintenance']);
         } else {
           this.spinner.hide();
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       });
     }
@@ -158,6 +172,16 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
     });
   }
 
+  
+  /**
+   * validate end date using start date change
+   * @param startdate
+   */
+  onChangeStartDate(startdate) {
+    let date = moment(startdate).add(this._appConstant.minGap, 'm').format();
+    this.endDateValidate = new Date(date);
+  }
+
   /**
    * Get elevator lookup by wingId
    * @param wingId
@@ -180,19 +204,21 @@ export class ScheduledMaintenanceAddComponent implements OnInit {
     this._service.getScheduledMaintenanceDetails(guid).subscribe(response => {
       if (response.isSuccess === true) {
         this.maintenanceObject = response.data;
-        var now = moment(this.maintenanceObject['scheduledDate']).format('YYYY-MM-DD HH:mm:ss');
-        this.maintenanceObject['scheduledDate'] = moment.utc(now).local().format('YYYY-MM-DDTHH:mm:ss');
-        if (this.maintenanceObject['status'] === "Completed") {
-          this.isCompleted = true;
-          this.statusList[0].disabled=true;
-          this.statusList[1].disabled=true;
+        // var now = moment(this.maintenanceObject['scheduledDate']).format('YYYY-MM-DD HH:mm:ss');
+        // this.maintenanceObject['scheduledDate'] = moment.utc(now).local().format('YYYY-MM-DDTHH:mm:ss');
+        this.maintenanceObject.startDateTime = moment(this.maintenanceObject.startDateTime + 'Z').local();
+        this.maintenanceObject.endDateTime = moment(this.maintenanceObject.endDateTime + 'Z').local();
+        // if (this.maintenanceObject['status'] === "Completed") {
+        //   this.isCompleted = true;
+        //   this.statusList[0].disabled=true;
+        //   this.statusList[1].disabled=true;
 
-        }
-        if (this.maintenanceObject['status'] === "Under Maintenance") {
-          this.statusList[0].disabled=true;
-          console.log(this.statusList);
-           
-        }
+        // }
+        // if (this.maintenanceObject['status'] === "Under Maintenance") {
+        //   this.statusList[0].disabled=true;
+        //   console.log(this.statusList);
+
+        // }
         this.getBuildingList(this.maintenanceObject['companyGuid']);
         this.getWingList(this.maintenanceObject['buildingGuid']);
         this.getElevatorList(this.maintenanceObject['entityGuid']);

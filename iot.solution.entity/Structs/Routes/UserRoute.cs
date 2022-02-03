@@ -11,6 +11,7 @@
             public const string Delete = "user.deleteuser";
             public const string Status = "user.updatestatus";
             public const string Validate = "user.validateuser";
+            public const string Identity = "user.identityuser";
             public const string ChangePassword = "user.changepassword";
             public const string RefreshToken = "user.refreshtoken";
             public const string UpdateStatus = "user.updatestatus";
@@ -27,6 +28,7 @@
             public const string Delete = "delete/{id}";
             public const string UpdateStatus = "updatestatus/{id}/{status}";
             public const string Validate = "login";
+            public const string Identity = "identity";
             public const string AdminLogin = "adminlogin";
             public const string RefreshToken = "refreshtoken";
             public const string ChangePassword = "changepassword";

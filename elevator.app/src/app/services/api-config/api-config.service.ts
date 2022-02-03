@@ -28,6 +28,13 @@ export interface IAppConfig {
   }
   apiServer: {
     baseUrl: string,
+  }, 
+  IdsServer: {
+    IDSAuthority: string,
+    IDSClientID: string,
+    IDSScope: string,
+    IDSArcValue: string,
+    webUrl: string,
   }
 }
 

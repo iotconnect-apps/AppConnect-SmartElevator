@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router'
 import { FormControl, FormGroup, Validators, FormBuilder, AbstractControl } from '@angular/forms'
 import { NgxSpinnerService } from 'ngx-spinner'
-import { NotificationService, UsersService, Notification } from '../../../../services';
+import { NotificationService, UserService, Notification } from '../../../../services';
 import { CustomValidators } from '../../../../helpers/custom.validators';
 
 @Component({
@@ -11,7 +11,7 @@ import { CustomValidators } from '../../../../helpers/custom.validators';
   styleUrls: ['./admin-user-add.component.css']
 })
 export class AdminUserAddComponent implements OnInit {
-  public contactNoError:boolean=false;
+  public contactNoError: boolean = false;
   public mask = {
     guide: true,
     showMask: false,
@@ -35,7 +35,7 @@ export class AdminUserAddComponent implements OnInit {
     private _notificationService: NotificationService,
     private activatedRoute: ActivatedRoute,
     private spinner: NgxSpinnerService,
-    public userService: UsersService,
+    public userService: UserService,
   ) {
     this.activatedRoute.params.subscribe(params => {
       if (params.userGuid != null) {
@@ -51,15 +51,13 @@ export class AdminUserAddComponent implements OnInit {
     this.createFormGroup();
   }
 
-  ngOnInit() {
+  ngOnInit() {}
 
-  }
 
-  /**
-   * Create Form
-   * */
+	/**
+  * For Create Form Group of user 
+  **/
   createFormGroup() {
-
     this.userForm = this.formBuilder.group({
       id: [''],
       firstName: ['', Validators.required],
@@ -67,9 +65,9 @@ export class AdminUserAddComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       contactNo: ['', Validators.required],
       password: ['', [
-        Validators.required, 
+        Validators.required,
         Validators.pattern('(?!.* )(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z\d$@$!@#$%^&*].{7,20}')]
-    ],
+      ],
       confirmPassword: ['', Validators.required],
       companyGuid: ['']
     }, {
@@ -82,25 +80,24 @@ export class AdminUserAddComponent implements OnInit {
    * @param c
    */
   passwordConfirming(c: AbstractControl): { invalid: boolean } {
-
     if (c.get('password').value !== c.get('confirmPassword').value) {
       return { invalid: true };
     }
   }
 
   /**
-   * Add/Update User
+   * For manage user (Add/Edit)
    * */
   manageUser() {
     this.checkSubmitStatus = true;
     let contactNo = this.userForm.value.contactNo.replace("(", "")
     let contactno = contactNo.replace(")", "")
     let finalcontactno = contactno.replace("-", "")
-    if(finalcontactno.match(/^0+$/)){
-      this.contactNoError=true;
+    if (finalcontactno.match(/^0+$/)) {
+      this.contactNoError = true;
       return
     } else {
-      this.contactNoError=false;
+      this.contactNoError = false;
     }
     this.userForm.get('id').setValue('00000000-0000-0000-0000-000000000000');
     if (this.userForm.status === "VALID") {
@@ -116,14 +113,14 @@ export class AdminUserAddComponent implements OnInit {
         if (response.isSuccess === true) {
           this.spinner.hide();
           if (response.data.updatedBy != null) {
-            this._notificationService.add(new Notification('success', "User has been updated successfully."));
+            this._notificationService.handleResponse({message:"User updated successfully."},"success");
           } else {
-            this._notificationService.add(new Notification('success', "User has been added successfully."));
+            this._notificationService.handleResponse({message:"User created successfully."},"success");
           }
           this.router.navigate(['/admin/users']);
         } else {
           this.spinner.hide();
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       })
     }

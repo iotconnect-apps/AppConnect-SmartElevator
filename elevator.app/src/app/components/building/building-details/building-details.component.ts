@@ -132,26 +132,7 @@ export class BuildingDetailsComponent implements OnInit {
   elevatorselected = [];
   public respondShow: boolean = false;
 
-  Respond() {
-    this.fileName = '';
-    this.fileUrl = null;
-    this.wingForm.reset();
-    this.fileToUpload = null;
-    this.respondShow = true;
-    this.isEdit = false;
-    this.refresh();
-  }
 
-  closerepond() {
-    this.fileName = '';
-    this.fileUrl = null;
-    this.fileToUpload = null;
-    this.checkSubmitStatus = false;
-    this.respondShow = false;
-    this.wingObject.image = '';
-    this.wingForm.reset();
-    this.currentImage = null;
-  }
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -188,7 +169,36 @@ export class BuildingDetailsComponent implements OnInit {
 
   }
 
+  /**
+	* For manage wing side bar
+	**/
+  Respond() {
+    this.fileName = '';
+    this.fileUrl = null;
+    this.wingForm.reset();
+    this.fileToUpload = null;
+    this.respondShow = true;
+    this.isEdit = false;
+    this.refresh();
+  }
 
+  /**
+	* For manage wing side bar
+	**/
+  closerepond() {
+    this.fileName = '';
+    this.fileUrl = null;
+    this.fileToUpload = null;
+    this.checkSubmitStatus = false;
+    this.respondShow = false;
+    this.wingObject.image = '';
+    this.wingForm.reset();
+    this.currentImage = null;
+  }
+
+  /**
+	* For Image remove from array
+	**/
   imageRemove() {
     this.myFile.nativeElement.value = "";
     if (this.wingObject['image'] == this.currentImage) {
@@ -220,6 +230,9 @@ export class BuildingDetailsComponent implements OnInit {
     }
   }
 
+  /**
+	* For delete wing
+	**/
   deletewingImg() {
     this.spinner.show();
     this.buildingService.removeBuildingImage(this.wingObject.guid).subscribe(response => {
@@ -232,18 +245,21 @@ export class BuildingDetailsComponent implements OnInit {
         this.currentImage = '';
         this.fileName = '';
         this.getWingList(this.buildingGuid);
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Wing Image")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Wing Image")},"success");
 
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
 
+  /**
+	* For open delete wing confirmation model
+	**/
   deleteImgModel() {
     this.deleteAlertDataModel = {
       title: "Delete Image",
@@ -264,10 +280,16 @@ export class BuildingDetailsComponent implements OnInit {
     });
   }
 
+  /**
+	* For fire on elevator change
+	**/
   changeElevator() {
     this.getElevatorPeakHoursGraph(this.buildingGuid, this.elevatorselected,this.type)
   }
 
+  /**
+	* For on change peak hours Graph in Filter
+	**/
   changePeakHoursGraphFilter(event) {
     let type = 'd';
     if (event.value === 'Week') {
@@ -279,6 +301,9 @@ export class BuildingDetailsComponent implements OnInit {
     this.getElevatorPeakHoursGraph(this.buildingGuid, this.elevatorselected, type)
   }
 
+  /**
+	* For Get Buiding Overview
+	**/
   getBuidingOverview(buildingGuid) {
     this.spinner.show();
     this.service.getBuidingOverview(buildingGuid).subscribe(response => {
@@ -294,7 +319,7 @@ export class BuildingDetailsComponent implements OnInit {
           averageOperatingHours: (response.data['totalOperatingHours']) ? response.data['totalOperatingHours'] : 0,
           averageTrips: (response.data['totalTrips']) ? response.data['totalTrips'] : 0,
           energy: (response.data['totalEnergy']) ? response.data['totalEnergy'] : 0,
-          totalMaintenanceCarriedOut: (response.data['totalMaintenance']) ? response.data['totalMaintenance'] : 0,
+          totalMaintenanceCarriedOut: (response.data['totalUnderMaintenanceCount']) ? response.data['totalUnderMaintenanceCount'] : 0,
           alerts: (response.data['totalAlerts']) ? response.data['totalAlerts'] : 0
         }
       }
@@ -310,7 +335,7 @@ export class BuildingDetailsComponent implements OnInit {
           totalMaintenanceCarriedOut: 0,
           alerts: 0
         }
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
@@ -326,16 +351,17 @@ export class BuildingDetailsComponent implements OnInit {
         totalMaintenanceCarriedOut: 0,
         alerts: 0
       }
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
-
-
+  /**
+	* For Get Alert List
+	**/
   getAlertList(buildingGuid) {
     let parameters = {
       pageNumber: 0,
-      pageSize: 10,
+      pageSize: 15,
       searchText: '',
       sortBy: 'eventDate desc',
       deviceGuid: '',
@@ -350,25 +376,33 @@ export class BuildingDetailsComponent implements OnInit {
       }
       else {
         this.alerts = [];
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
         this.spinner.hide();
       this.alerts = [];
-      this._notificationService.add(new Notification('error', error));
     });
   }
 
-
+  /**
+	* For Get Elevator List
+	**/
   getElevatorList(buildingId) {
     this.spinner.show();
     this.service.getElevatorLookup(buildingId).subscribe(response => {
       this.spinner.hide();
       this.elevatorList = response.data;
+      if(this.elevatorList.length > 0){
+        this.elevatorselected.push(this.elevatorList[0].value);
+        this.getElevatorPeakHoursGraph(this.buildingGuid, this.elevatorselected,this.type)
+      }
     });
   }
 
+  /**
+	* For Get Building Graph
+	**/
   getBuildingGraph(buildingId, elevatorId = '', type = 'd') {
     this.spinner.show();
     this.dashboardService.getBuildingGraph(buildingId, type).subscribe(response => {
@@ -408,15 +442,18 @@ export class BuildingDetailsComponent implements OnInit {
         };
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For Get Elevator PeakHours Graph
+	**/
   getElevatorPeakHoursGraph(companyGuid, elevatorId = [], type) {
     this.spinner.show();
     let currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -466,12 +503,12 @@ export class BuildingDetailsComponent implements OnInit {
           };
         }
         else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
 
         }
       }, error => {
         this.spinner.hide();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       });
     } else {
       this.lineChartData.dataTable = [];
@@ -479,6 +516,9 @@ export class BuildingDetailsComponent implements OnInit {
     }
   }
 
+  /**
+	* For Create Form Group for wing
+	**/
   createFormGroup() {
     this.wingForm = new FormGroup({
       parentEntityGuid: new FormControl(null),
@@ -489,6 +529,9 @@ export class BuildingDetailsComponent implements OnInit {
     });
   }
 
+  /**
+	* For Building Details
+	**/
   getBuildingDetails(buildingGuid) {
     this.spinner.show();
     this.service.getbuildingDetails(buildingGuid).subscribe(response => {
@@ -498,15 +541,18 @@ export class BuildingDetailsComponent implements OnInit {
         this.buildingname = response.data.name;
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For Get building
+	**/
   getbuilding(buildingGuid) {
 
     this.spinner.show();
@@ -516,15 +562,18 @@ export class BuildingDetailsComponent implements OnInit {
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For Handle Image File Preview
+	**/
   handleImageInput(event) {
     this.handleImgInput = true;
     let files = event.target.files;
@@ -562,6 +611,9 @@ export class BuildingDetailsComponent implements OnInit {
     }
   }
 
+  /**
+	* For Manage Wing (Add / Edit)
+	**/
   manageWing() {
     this.checkSubmitStatus = true;
     var data = {
@@ -601,14 +653,14 @@ export class BuildingDetailsComponent implements OnInit {
 
           if (response.isSuccess === true) {
             if (this.isEdit) {
-              this._notificationService.add(new Notification('success', "Wing has been updated successfully."));
+              this._notificationService.handleResponse({message:"Wing updated successfully."},"success");
               this.closerepond();
             } else {
-              this._notificationService.add(new Notification('success', "Wing has been added successfully."));
+              this._notificationService.handleResponse({message:"Wing created successfully."},"success");
               this.closerepond();
             }
           } else {
-            this._notificationService.add(new Notification('error', response.message));
+            this._notificationService.handleResponse(response,"error");
           }
           this.checkSubmitStatus = false;
         })
@@ -629,6 +681,9 @@ export class BuildingDetailsComponent implements OnInit {
     }
   }
 
+  /**
+	* For Get Wing List
+	**/
   getWingList(buildingGuid) {
     this.spinner.show();
     this.searchParameters['parentEntityId'] = buildingGuid;
@@ -638,15 +693,18 @@ export class BuildingDetailsComponent implements OnInit {
         this.wingList = response.data.items;
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.wingList = [];
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For Reste Wing Form
+	**/
   refresh() {
     this.createFormGroup();
     this.wingForm.reset(this.wingForm.value);
@@ -657,6 +715,9 @@ export class BuildingDetailsComponent implements OnInit {
     this.currentImage = null;
   }
 
+  /**
+	* For open delete Wing confirmation model
+	**/
   deleteModel(wingModel: any) {
     this.deleteAlertDataModel = {
       title: "Delete Wing",
@@ -677,23 +738,29 @@ export class BuildingDetailsComponent implements OnInit {
     });
   }
 
+  /**
+	* For delete Wing 
+	**/
   deleteWing(guid) {
     this.spinner.show();
     this.service.deleteBuilding(guid).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Wing")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Wing")},"success");
         this.getWingList(this.buildingGuid);
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For get Wing  details 
+	**/
   getWingDetails(wingGuid) {
     this.closerepond();
     this.fileToUpload =false;
@@ -715,15 +782,18 @@ export class BuildingDetailsComponent implements OnInit {
         }
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.wingList = [];
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For convert UTC date to local time zone
+	**/
   getLocalDate(lDate) {
     var utcDate = moment.utc(lDate, 'YYYY-MM-DDTHH:mm:ss.SSS');
     // Get the local version of that date
@@ -731,8 +801,11 @@ export class BuildingDetailsComponent implements OnInit {
     let res = moment(localDate).format('MMM DD, YYYY hh:mm:ss A');
     return res;
     
-    }
+  }
 
+  /**
+	* For Change Graph Filter
+	**/
   changeGraphFilter(event) {
     let type = 'd';
     if (event.value === 'Week') {

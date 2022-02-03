@@ -86,17 +86,22 @@ export class PurchasePlanComponent implements OnInit {
 
         // this.solutionPlans = response.data.filter(x => x.status);
         this.solutionPlans = response.data.data;
-        // this.solutionPlans.forEach(element => {
-        //   element.customFeatureCount = element.planFeatures.filter(x => x.isCustomeFeature).length;
-        // });
+        this.solutionPlans.forEach(element => {
+          if (element.isPlanSelected) {
+            this.selectedPlanDetail = element;
+            this.myForm.controls.selectedPlanName.patchValue(element.planName);
+            this.myForm.controls.selectedPlanPrice.patchValue(element.consumerPlanPrice);
+            this.myForm.controls.selectedPlanCode.patchValue(element.planCode);
+          }
+        });
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
 
   }
@@ -106,76 +111,78 @@ export class PurchasePlanComponent implements OnInit {
   async onSubmitPayment() {
     if (this.myForm.valid) {
       this.spinner.show();
-      if (this._paymentService.paymentData.cardId == null || this._paymentService.paymentData.cardId == '') {
-        if (this.appConstant.isEmptyString(this._paymentService.paymentData.cardName)) {
-          this._notificationService.add(new Notification('error', "Please enter card name."));
-          this.spinner.hide();
-          return;
-        } else if (this.appConstant.isEmptyString(this._paymentService.paymentData.cardName.trim())) {
-          this._notificationService.add(new Notification('error', "Please enter valid card name."));
-          this.spinner.hide();
-          return;
-        }
+      //if (this._paymentService.paymentData.cardId == null || this._paymentService.paymentData.cardId == '') {
+      //if (this.appConstant.isEmptyString(this._paymentService.paymentData.cardName)) {
+        // this._notificationService.handleResponse({message:"Please enter card name."},"error");
+      //  this.spinner.hide();
+      //  return;
+      //} else if (this.appConstant.isEmptyString(this._paymentService.paymentData.cardName.trim())) {
+        // this._notificationService.handleResponse({message:"Please enter valid card name."},"error");
+      //  this.spinner.hide();
+      //  return;
+      //}
 
 
-        const { paymentMethod, error } =
-          await this._paymentService.paymentData.stripe.createPaymentMethod(
-            {
-              type: 'card',
-              card: this._paymentService.paymentData.card,
-              billing_details: {
-                name: this._paymentService.paymentData.cardName,
-              }
+      //const { paymentMethod, error } =
+      //  await this._paymentService.paymentData.stripe.createPaymentMethod(
+      //    {
+      //      type: 'card',
+      //      card: this._paymentService.paymentData.card,
+      //      billing_details: {
+      //        name: this._paymentService.paymentData.cardName,
+      //      }
 
-            });
-        if (error) {
-          this.message = error.message;
-          this._notificationService.add(new Notification('error', this.message));
-          this.spinner.hide();
-          return;
-        }
-        else {
-          console.log(' this.selectedPlanDetail', this.selectedPlanDetail);
-          // await this._paymentService.paymentData.stripe.createPaymentMethod(
-          //   {
-          //     type: 'card',
-          //     card: this._paymentService.paymentData.card,
-          //     billing_details: {
-          //       name: 'Jenny Rosen',
-          //     }
+      //    });
+      //if (error) {
+      //  this.message = error.message;
+      // this._notificationService.handleResponse({message:this.message},"error");
+      //  this.spinner.hide();
+      //  return;
+      //}
+      //else {
+      // await this._paymentService.paymentData.stripe.createPaymentMethod(
+      //   {
+      //     type: 'card',
+      //     card: this._paymentService.paymentData.card,
+      //     billing_details: {
+      //       name: 'Jenny Rosen',
+      //     }
 
-          //   });
-          let res = {};
-          res['subscriptionToken'] = '';
-          res['solutionCode'] = this.selectedPlanDetail['solutionCode'];
-          res['solutionPlanCode'] = this.myForm.value.selectedPlanCode;
-          res['isAutoRenewal'] = this.myForm.value.isAutoRenewal;
-          res['stripeToken'] = paymentMethod.id;
-          res['stripeCardId'] = this._paymentService.paymentData.cardId;
-          res['subscriberId'] = '';
-          //res['packageName'] = this.myForm.value.selectedPlanName;
-          //res['packageCode'] =this.myForm.value.selectedPlanCode;
+      //   });
+      let res = {};
+      res['subscriptionToken'] = '';
+      res['solutionCode'] = this.selectedPlanDetail['solutionCode'];
+      res['solutionPlanCode'] = this.myForm.value.selectedPlanCode;
+      res['isAutoRenewal'] = this.myForm.value.isAutoRenewal;
+      //res['stripeToken'] = paymentMethod.id;
+      res['stripeToken'] = '';
+      res['stripeCardId'] = this._paymentService.paymentData.cardId;
+      res['subscriberId'] = '';
+      //res['packageName'] = this.myForm.value.selectedPlanName;
+      //res['packageCode'] =this.myForm.value.selectedPlanCode;
 
-          this.spinner.hide();
-          return res;
-        }
+      this.spinner.hide();
+      return res;
+      //}
 
-      }
-      else {
-        this.saveData.stripeToken = "";
-        this.saveData.stripeCardId = this._paymentService.paymentData.cardId;
-      }
+      //}
+      //else {
+      //  this.saveData.stripeToken = "";
+      //  this.saveData.stripeCardId = this._paymentService.paymentData.cardId;
+      //}
 
     }
     else {
-      this._notificationService.add(new Notification('error', "Please select plan to purchase"));
+      this._notificationService.handleResponse({message:"Please select plan"},"error");
       this.spinner.hide();
       return;
     }
 
   }
 
-
+  /**
+  * For Select particular plan
+  * */
   SelectPlan(data) {
     if (data) {
       let selectedPlan = this.solutionPlans.filter(x => x.isPlanSelected);
@@ -189,8 +196,10 @@ export class PurchasePlanComponent implements OnInit {
     }
   }
 
+  /**
+* For manage solution
+* */
   onSolutionChange(event) {
-    console.log("coming here");
     this.router.navigate(["/"]);
   }
 
@@ -198,6 +207,9 @@ export class PurchasePlanComponent implements OnInit {
   //   this.getPlansForSolution(this.myForm.value.gridSearchValue);
   // }
 
+  /**
+  * For manage Subfeature List
+  * */
   subfeatureList(subfeature: number, data1: any) {
 
     if (subfeature != this.subfeaturedisplayIndex) {

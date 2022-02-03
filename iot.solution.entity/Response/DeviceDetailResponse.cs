@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace iot.solution.entity.Response
 {
@@ -14,6 +15,7 @@ namespace iot.solution.entity.Response
         public int Day { get; set; }
         public int Hour { get; set; }
         public int Minute { get; set; }
+        public DateTime StartDateTime { get; set; }
     }
 
    

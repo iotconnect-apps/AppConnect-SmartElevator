@@ -4,6 +4,7 @@ DECLARE @output INT = 0
 		,@syncDate	DATETIME
 EXEC [dbo].[CompanyStatistics_Get]
 	 @guid				= '2D442AEA-E58B-4E8E-B09B-5602E1AA545A'	
+	,@currentDate	= '2020-05-21 06:47:56.890'
 	,@invokingUser  	= '7D31E738-5E24-4EA2-AAEF-47BB0F3CCD41'
 	,@version			= 'v1'
 	,@output			= @output		OUTPUT
@@ -15,7 +16,8 @@ EXEC [dbo].[CompanyStatistics_Get]
 *******************************************************************/
 
 CREATE PROCEDURE [dbo].[CompanyStatistics_Get]
-(	 @guid				UNIQUEIDENTIFIER	
+(	 @guid				UNIQUEIDENTIFIER
+	,@currentDate		DATETIME			= NULL
 	,@invokingUser		UNIQUEIDENTIFIER	= NULL
 	,@version			NVARCHAR(10)
 	,@output			SMALLINT		  OUTPUT
@@ -33,7 +35,8 @@ BEGIN
         SELECT @Param =
         (
             SELECT 'CompanyStatistics_Get' AS '@procName'
-			, CONVERT(nvarchar(MAX),@guid) AS '@guid'			
+			, CONVERT(nvarchar(MAX),@guid) AS '@guid'	
+			, CONVERT(VARCHAR(50),@currentDate) as '@currentDate'
 	        , CONVERT(nvarchar(MAX),@invokingUser) AS '@invokingUser'
 			, CONVERT(nvarchar(MAX),@version) AS '@version'
 			, CONVERT(nvarchar(MAX),@output) AS '@output'
@@ -62,11 +65,26 @@ BEGIN
 		--		WHERE [companyGuid] = @guid AND [isDeleted] = 0
 		--		GROUP BY [companyGuid]
 		--)
-		,CTE_MaintenanceCount
+		, CTE_Maintenance
+		AS (	SELECT DM.[companyGuid] AS [companyGuid]
+					, DM.[guid] AS [guid]
+					,CASE WHEN @currentDate >= [startDateTime] AND @currentDate <= [endDateTime]
+					 THEN 'Under Maintenance'
+					 ELSE CASE WHEN [startDateTime] < @currentDate AND [endDateTime] < @currentDate 
+					 THEN 'Completed'
+					 ELSE 'Scheduled'
+					 END
+					 END AS [status]
+				FROM dbo.[ElevatorMaintenance] DM (NOLOCK) 
+				WHERE DM.[companyGuid] = @guid 
+				AND [IsDeleted]=0 
+			)
+			,CTE_UserCount
 		AS (	SELECT [companyGuid]
-						, SUM(CASE WHEN [status] = 'Scheduled' THEN 1 ELSE 0 END) [scheduledCount] 
-						, SUM(CASE WHEN [status] = 'Under Maintenance' THEN 1 ELSE 0 END) [underMaintenanceCount] 
-				FROM [dbo].[ElevatorMaintenance] (NOLOCK) 
+		                , COUNT(1) [totalUserCount]
+						, SUM(CASE WHEN [isActive] = 1 THEN 1 ELSE 0 END) [activeUserCount] 
+						, SUM(CASE WHEN [isActive] = 0 THEN 1 ELSE 0 END) [inactiveUserCount] 
+				FROM [dbo].[User] (NOLOCK) 
 				WHERE [companyGuid] = @guid AND [isDeleted] = 0
 				GROUP BY [companyGuid]
 		)
@@ -101,8 +119,10 @@ BEGIN
 				, ISNULL(L.[totalCount],0) AS [totalBuilding]
 				--, ISNULL(D.[connectedDeviceCount],0) AS [totalConnectedDevices]
 				--, ISNULL(D.[disconnectedDeviceCount],0) AS [totalDisconnectedDevices]
-				, ISNULL(M.[scheduledCount],0) AS [totalScheduledCount]
-				, ISNULL(M.[underMaintenanceCount],0) AS [totalUnderMaintenanceCount]
+				, ISNULL(CM.[underMaintenanceCount],0) AS [totalUnderMaintenanceCount]
+				, ISNULL( U.[activeUserCount],0) AS [activeUserCount]
+				, ISNULL( U.[inactiveUserCount],0) AS [inactiveUserCount]
+				, ISNULL( U.[totalUserCount],0) AS [totalUserCount]
 				, ISNULL(A.[criticalAlertCount],0) AS [criticalAlertCount]
 				, ISNULL(A.[informationAlertCount],0) AS [informationAlertCount]
 				, ISNULL(A.[criticalAlertCount],0) + ISNULL(A.[informationAlertCount],0) + ISNULL(A.[majorAlertCount],0) + ISNULL(A.[minorAlertCount],0) + ISNULL(A.[warningAlertCount],0) AS [totalAlert]
@@ -117,8 +137,12 @@ BEGIN
 		FROM [dbo].[Company] C (NOLOCK) 
 		LEFT JOIN CTE_Building L ON C.[guid] = L.[companyGuid]
 		--LEFT JOIN CTE_DeviceCount D ON C.[guid] = D.[companyGuid]
-		LEFT JOIN CTE_MaintenanceCount M ON C.[guid] = M.[companyGuid]
+		LEFT JOIN (SELECT M.[companyGuid], COUNT(1) AS [underMaintenanceCount]
+					FROM CTE_Maintenance M 
+					WHERE M.[status] IN ('Under Maintenance','Scheduled')
+					GROUP BY M.[companyGuid]) CM ON C.[guid] = CM.[companyGuid]
 		LEFT JOIN CTE_AlertCount A ON C.[guid] = A.[companyGuid]
+		LEFT JOIN CTE_UserCount U ON C.[guid] = U.[companyGuid]
 		LEFT JOIN CTE_EnergyCount E ON C.[guid] = E.[companyGuid]
 		LEFT JOIN 
 			(SELECT	TOP	1 E.[companyGuid], 
@@ -127,7 +151,7 @@ BEGIN
 			 FROM CTE_DeviceEnergyCount CDE 
 			 INNER JOIN [dbo].[Elevator] E (NOLOCK) ON CDE.[deviceGuid] = E.[guid] AND E.[isDeleted] = 0
 			 GROUP BY E.[companyGuid],E.[name]
-			 ORDER BY [minCount] DESC 
+			 ORDER BY [minCount] ASC 
 			) MinCount ON MinCount.[companyGuid] = C.[guid]
 		LEFT JOIN 
 			(SELECT	TOP	1 E.[companyGuid], 

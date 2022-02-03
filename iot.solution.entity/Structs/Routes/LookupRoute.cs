@@ -17,6 +17,7 @@
             public const string GetSensorsLookup = "lookup.sensors";            
             public const string GetCommandsIoT = "allcommandsiot/{templateGuid}";
             public const string GetElevatorLookupByBuilding = "lookup.getelevatorlookupbybuilding";
+            public const string GetElevatorLookupByCompany = "lookup.getelevatorlookupbycompany";
         }
 
         public struct Route
@@ -35,6 +36,7 @@
             public const string GetCommandsIoT = "allcommandsiot/{templateGuid}";
             public const string GetSensorsLookup = "sensors/{templateId}/{deviceId}";
             public const string GetElevatorLookupByBuilding = "getelevatorlookupbybuilding/{buildingId}";
+            public const string GetElevatorLookupByCompany = "getelevatorlookupbycompany";
         }
     }
 }

@@ -14,7 +14,7 @@ namespace host.iot.solution.Controllers
     [ProducesResponseType(typeof(NotFoundError), (int)HttpStatusCode.NotFound)]
     [ApiController]
     [ApiVersionNeutral]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "CompanyUser,Admin")]
     public class BaseController : ControllerBase
     {
         public BaseController()

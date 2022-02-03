@@ -5,7 +5,7 @@ import { ApiConfigService, NotificationService } from 'app/services';
 @Injectable({
   providedIn: 'root'
 })
-export class UsersService {
+export class UserService {
   protected apiServer = ApiConfigService.settings.apiServer;
   cookieName = 'FM';
   constructor(
@@ -14,7 +14,14 @@ export class UsersService {
     private _notificationService: NotificationService) {
     this._notificationService.apiBaseUrl = this.apiServer.baseUrl;
   }
-
+  getUserDetailByToken(token) {
+		const parameter = {
+			"token" :token
+		}
+		return this.httpClient.post<any>(this.apiServer.baseUrl + 'api/account/identity', parameter).map(response => {
+			return response;
+		});
+	}
 
   getUserlist(parameters) {
     const parameter = {

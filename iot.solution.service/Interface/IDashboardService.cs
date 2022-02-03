@@ -7,9 +7,21 @@ namespace iot.solution.service.Interface
     public interface IDashboardService
     {
         List<Entity.LookupItem> GetBuildingsLookup();
-        Entity.BaseResponse<Entity.DashboardOverviewResponse> GetOverview();
+        Entity.BaseResponse<Entity.DashboardOverviewResponse> GetOverview(DateTime currentDate, string timeZone);
 
-        Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverview(Guid buildingId, string frequency);
+        Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverview(Guid buildingId, string frequency, DateTime currentDate, string timeZone);
+        #region Dynamic Dashboard
+        public Entity.ActionStatus ManageMasterWidget(Entity.MasterWidget request);
+        public List<Entity.MasterWidget> GetMasterWidget();
+        public Entity.MasterWidget GetMasterWidgetById(Guid Id);
+        Entity.ActionStatus DeleteMasterWidget(Guid id);
+
+        public Entity.ActionStatus ManageUserWidget(Entity.UserDasboardWidget request);
+        public List<Entity.UserDasboardWidget> GetUserWidget();
+        public Entity.UserDasboardWidget GetUserWidgetById(Guid Id);
+        Entity.ActionStatus DeleteUserWidget(Guid id);
+        #endregion
+
 
     }
 }

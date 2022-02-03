@@ -11,6 +11,7 @@ namespace iot.solution.entity.Structs.Routes
             public const string GetPeakHoursByElevator = "chart.getpeakhoursbyelevator";
             public const string GetOperationHours = "chart.getoperationhours";
             public const string TripsByElevator = "chart.tripsbyelevator";
+            public const string ExecuteCrone = "chart.executecrone";
         }
 
         public struct Route
@@ -19,6 +20,7 @@ namespace iot.solution.entity.Structs.Routes
             public const string GetPeakHoursByElevator = "getpeakhoursbyelevator";
             public const string GetOperationHours = "getoperationhours";
             public const string TripsByElevator = "gettripsbyelevator/{elevatorId}";
+            public const string ExecuteCrone = "executecron";
         }
     }
 }

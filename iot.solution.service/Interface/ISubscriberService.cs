@@ -15,6 +15,7 @@ namespace iot.solution.service.Interface
         Response.TimezoneResponse GetTimezoneLookUp();
         Response.SubscriptionPlanResponse GetSubscriptionPlans(string solutionID);
         Entity.SearchResult<List<Entity.SubscriberData>> SubscriberList(string solutionID, Entity.SearchRequest request);
+        Entity.ActionStatus ValidateCompany(Entity.ValidateCompanyRequest requestData);
         Entity.ActionStatus SaveCompany(Entity.SaveCompanyRequest requestData);
         Entity.SubsciberCompanyDetails GetSubscriberDetails(string solutionCode, string userEmail);
         Entity.SearchResult<List<Entity.HardwareKitResponse>> GetSubscriberKitDetails(string companyID,Entity.SearchRequest request, bool isAssigned);

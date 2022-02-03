@@ -111,7 +111,26 @@ namespace iot.solution.host.Controllers
             }
             return response;
         }
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(SubscriberRoute.Route.ValidateCompany, Name = SubscriberRoute.Name.ValidateCompany)]
+        public BaseResponse<bool> ValidateCompany(ValidateCompanyRequest requestData)
+        {
+            var response = new BaseResponse<bool>(true);
+            try
+            {
+                var apiResponse = _service.ValidateCompany(requestData);
+                    response.IsSuccess = apiResponse.Success;
+                    response.Message = apiResponse.Message;                
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new BaseResponse<bool>(false, ex.Message);
+            }
 
+            return response;
+        }
         [HttpPost]
         [AllowAnonymous]
         [Route(SubscriberRoute.Route.SaveCompany, Name = SubscriberRoute.Name.SaveCompany)]

@@ -1,10 +1,10 @@
 import { Component, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router'
 import { NgxSpinnerService } from 'ngx-spinner'
-import { UsersService, LookupService, Notification, NotificationService, AuthService } from 'app/services'
 import { RxFormGroup, RxFormBuilder } from '@rxweb/reactive-form-validators';
 import { RequestSubscriberFormModel } from './subscriber.model';
 import { PurchasePlanComponent } from '../purchase-plan/purchase-plan.component';
+import { Notification, NotificationService, UserService, LookupService, AuthService } from '../../../services';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +15,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   isFormSubmittedSuccessfully: any;
   @ViewChild(PurchasePlanComponent, { static: false }) child: PurchasePlanComponent;
 
+  validateCompany: any = false;
   modulename = "Register";
   SubscriberFormGroup: RxFormGroup;
   SubscriberData: RequestSubscriberFormModel = new RequestSubscriberFormModel();
@@ -36,7 +37,7 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     private spinner: NgxSpinnerService,
     private router: Router,
     private _notificationService: NotificationService,
-    public userService: UsersService,
+    public userService: UserService,
     public lookupService: LookupService,
     private formBuilder: RxFormBuilder,
     private authService: AuthService
@@ -50,7 +51,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     this.getTimezoneList();
     this.getcountryList();
     this.createFormGroup();
-    //this.userService.logout();
   }
 
   ngAfterViewInit() {
@@ -63,19 +63,6 @@ export class RegisterComponent implements OnInit, AfterViewInit {
   createFormGroup() {
     this.SubscriberFormGroup = <RxFormGroup>this.formBuilder.formGroup(this.SubscriberData);
     this.SubscriberFormGroup.patchValue({
-      //"address": "aghmedabad",
-      //"cityName": "Ahmedabad",
-      //"companyName": "aBC",
-      //"cpId": "Mandip",
-      //"email": "mandip@mailinator.com",
-      //"firstName": "Mandip",
-      //"lastName": "Vora",
-      //"password": "Softweb#123",
-      //"ccode": "123",
-      //"phoneNumber": "7878787878",
-      //"postalCode": "7878787",
-      //"stateId": "3092b89e-e71c-4b43-a679-413cd3844c78",
-      //"timezoneId": "8b7a9755-3470-49ed-ba2d-24b5b1bb9b7e"
     })
   }
 
@@ -90,11 +77,11 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.timezoneList = response.data.data;
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
@@ -109,11 +96,11 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         this.countryList = response.data.data;
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
@@ -135,24 +122,24 @@ export class RegisterComponent implements OnInit, AfterViewInit {
             this.stateList = response.data.data;
           }
           else {
-            this._notificationService.add(new Notification('error', response.message));
+            this._notificationService.handleResponse(response,"error");
           }
         }, error => {
           this.spinner.hide();
-          this._notificationService.add(new Notification('error', error));
+          this._notificationService.handleResponse(error,"error");
         });
       }
     }
   }
-
   /**
-   * Do next step payment once subscription form is completed
-   */
+    * Do next step payment once subscription form is completed
+    */
   doPayment() {
     this.isSubmitted = true;
-    // let contactNo = this.SubscriberFormGroup.value.phoneNumber.replace("(", "");
-    // contactNo = contactNo.replace(")", "");
-    // this.SubscriberFormGroup.value.phoneNumber = contactNo;
+    if ((this.SubscriberFormGroup.value['companyName'] || this.SubscriberFormGroup.value['email']) && !this.validateCompany) {
+      this.validate(this.SubscriberFormGroup.value['companyName'], this.SubscriberFormGroup.value['email']);
+    }
+
     if (!this.SubscriberFormGroup.valid) {
       return;
     }
@@ -161,12 +148,20 @@ export class RegisterComponent implements OnInit, AfterViewInit {
         .catch(err => console.log(err))
         .then((result: any) => (typeof result !== "undefined") ? this.registerUser(result) : false);
     }
-    this.isShowPayment = true;
+    //this.isShowPayment = true;
   }
 
+  /**
+   * For handle next and back
+   */
   goBack() {
-    this.isShowPayment = !this.isShowPayment
+    this.isShowPayment = !this.isShowPayment;
+    this.validateCompany = false;
   }
+
+  /**
+ * For Register New User
+ */
   registerUser(data) {
     let postData = {
       "subscriptionToken": data.subscriptionToken,
@@ -195,17 +190,50 @@ export class RegisterComponent implements OnInit, AfterViewInit {
     };
     this.spinner.show();
     this.lookupService.postNoAuthRegister(postData).subscribe(response => {
-      this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', 'Registered successfully'));
+        this._notificationService.handleResponse({message:'Registered successfully'},"success");
         this.router.navigate(['/login']);
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
+      }
+      this.spinner.hide();
+    }, error => {
+      this.spinner.hide();
+      this._notificationService.handleResponse(error,"error");
+
+    });
+  }
+
+  /**
+   * Validate Company name and email
+   * @param name
+   * @param email
+   */
+  validate(name, email) {
+    let data = {
+      "companyName": name,
+      "email": email,
+    };
+    this.spinner.show();
+    this.lookupService.validate(data).subscribe(response => {
+      if (response.isSuccess === true) {
+        this.spinner.hide();
+        if (this.SubscriberFormGroup.valid) {
+          this.isShowPayment = true;
+          this.validateCompany = true;
+        }
+      }
+      else {
+        this.spinner.hide();
+        this._notificationService.handleResponse(response,"error");
+        this.isShowPayment = false;
+        this.validateCompany = false;
+        return;
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
 
     });
   }

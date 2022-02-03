@@ -13,7 +13,8 @@ export class AppConstant {
   public tokenInValidMessage = 'Invalid Token.';
   public unauthorizedMessage = 'Unauthorized access';
   public serverErrorMessage = 'Server Error';
-
+  //# "Maintenance date validation range in min"
+  public minGap=15; 
 
   public msgAdded = 'modulename added successfully.';
   public msgCreated = 'modulename created successfully.';

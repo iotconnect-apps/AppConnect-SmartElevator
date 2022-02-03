@@ -79,19 +79,19 @@ BEGIN
 		INTO #tempDevice
 		FROM @DeviceXml.nodes('/items/item') a(b)
 
-		IF(@action = 'insert')
-		BEGIN
-			;WITH ExistingDevice AS
-			(
-				SELECT [guid] FROM dbo.[Elevator] d (NOLOCK) WHERE d.companyGuid = @companyGuid
-			)
+		--IF(@action = 'insert')
+		--BEGIN
+		--	;WITH ExistingDevice AS
+		--	(
+		--		SELECT [guid] FROM dbo.[Elevator] d (NOLOCK) WHERE d.companyGuid = @companyGuid
+		--	)
 	
-			INSERT INTO dbo.[Elevator]([guid], [uniqueId], [name], [companyGuid], [entityGuid], [isActive], [isDeleted], [templateGuid], [isProvisioned], [tag], [createdDate],[note])
-			SELECT DISTINCT [guid], uniqueId, ISNULL([name],''), @companyGuid, entityGuid, isActive, isDeleted, deviceTemplateGuid, IsNULL(isConnected,0), LOWER(tag), GETUTCDATE(),ISNULL([note],'')
-			FROM #tempDevice td
-			WHERE NOT EXISTS ( SELECT 1 FROM ExistingDevice eu WHERE td.[guid] = eu.[guid] )
+		--	INSERT INTO dbo.[Elevator]([guid], [uniqueId], [name], [companyGuid], [entityGuid], [isActive], [isDeleted], [templateGuid], [isProvisioned], [tag], [createdDate],[note])
+		--	SELECT DISTINCT [guid], uniqueId, ISNULL([name],''), @companyGuid, entityGuid, isActive, isDeleted, deviceTemplateGuid, IsNULL(isAcquired,0), LOWER(tag), GETUTCDATE(),ISNULL([note],'')
+		--	FROM #tempDevice td
+		--	WHERE NOT EXISTS ( SELECT 1 FROM ExistingDevice eu WHERE td.[guid] = eu.[guid] )
 	
-		END
+		--END
 
 		IF(@action = 'update')
 		BEGIN

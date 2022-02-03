@@ -1,214 +1,243 @@
 <section class="content-header">
-  <h1>Dashboard</h1>
-  <div class="content-header-action"></div>
+	<h1>Dashboard</h1>
+	<div class="content-header-action">
+		<div class="tab-link-bar">
+			<a [routerLink]="['/dynamic-dashboard']" href="javascript:void(0);">Tryout New Dashboard</a>
+		</div>
+	</div>
 </section>
+<div class="default-system-dashboard" *ngIf="!isDynamicDashboard">
+	<div class="main-page dashboard">
+		<div class="row dashboardtop-widget">
+			<div class="col-xl-2 col-lg-3">
+				<div class="dashboard-chart bgbluewidget text-center">
+					<h4>{{ overView['buildingCount'] }}</h4>
+					<p class="small-widget-heading">Total Buildings</p>
+				</div>
+			</div>
+			<div class="col-xl-2 col-lg-3">
+				<div class="dashboard-chart bggreenlwidget text-center">
+					<div class="circle-progress-wrapper">
+						<div class="circle-progress-text">
+							<p class="current">
+								{{ overView['elevatorsCount']['connected'] }}/{{ overView['elevatorsCount']['total'] }}
+							</p>
+							<p class="small-widget-heading">Elevators Connected</p>
+						</div>
+						<round-progress [current]="overView['elevatorsCount']['connected']" [max]="overView['elevatorsCount']['total']" [color]="'#28a749'" [background]="'#eaeaea'" [radius]="100"
+						[stroke]="20" [rounded]="false" [responsive]="true" [duration]="800" [animation]="'easeInOutQuart'" [animationDelay]="0"> </round-progress>
+					</div>
+				</div>
+			</div>
+			<div class="col-xl-3 col-lg-4">
+				<div class="dashboard-chart bgpinkwidget text-center">
+					<div class="widget-readings-box">
+						<div class="widget-reading-left">
+							<p>Total</p>
+							<h4>{{overView['energy']['totalConsumption']}} KW</h4>
+						</div>
+						<div *ngIf="overView['energy']['elevators'].length"  class="widget-reading-right">
+							<ul class="reading-item-list">
+								<li *ngFor="let elevator of overView['energy']['elevators'];let i = index;" class="reading-item">
+									<span *ngIf="i === 0" class="elevator-status-indicator status-success"></span>
+									<span *ngIf="i !== 0" class="elevator-status-indicator status-danger"></span>
+									<span>{{elevator['name']}} (B.1) {{elevator['consumption']}} KW</span>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<p class="small-widget-heading">Energy Consumption</p>
+				</div>
+			</div>
+			<div class="col-xl-3 col-lg-4">
+				<div class="dashboard-chart bgyellowwidget text-center">
+					<div class="widget-readings-box">
+						<div class="widget-reading-left">
+							<h4>{{overView['maintenanceStats']['underMaintenanceCount']}}</h4>
+							<p>Maintenance</p>
+						</div>
 
-<div class="main-page dashboard">
-  <div class="row dashboardtop-widget">
-    <div class="col-xl-2 col-lg-3">
-      <div class="dashboard-chart bgbluewidget text-center">
-        <h4>{{ overView['buildingCount'] }}</h4>
-        <p class="small-widget-heading">Total Buildings</p>
-      </div>
-    </div>
-    <div class="col-xl-2 col-lg-3">
-      <div class="dashboard-chart bggreenlwidget text-center">
-        <div class="circle-progress-wrapper">
-          <div class="circle-progress-text">
-            <p class="current">
-              {{ overView['elevatorsCount']['connected'] }}/{{ overView['elevatorsCount']['total'] }}
-            </p>
-            <p class="small-widget-heading">Elevators Connected</p>
-          </div>
-          <round-progress [current]="overView['elevatorsCount']['connected']"
-            [max]="overView['elevatorsCount']['total']" [color]="'#28a749'" [background]="'#eaeaea'" [radius]="100"
-            [stroke]="20" [rounded]="false" [responsive]="true" [duration]="800" [animation]="'easeInOutQuart'"
-            [animationDelay]="0">
-          </round-progress>
-        </div>        
-      </div>
-    </div>
-    <div class="col-xl-3 col-lg-4">
-      <div class="dashboard-chart bgpinkwidget text-center">
-        <div class="widget-readings-box">
-          <div class="widget-reading-left">
-            <p>Total</p>
-            <h4>{{overView['energy']['totalConsumption']}} KW</h4>
-          </div>
-          <div *ngIf="overView['energy']['elevators'].length"  class="widget-reading-right">
-            <ul class="reading-item-list">
-              <li *ngFor="let elevator of overView['energy']['elevators'];let i = index;" class="reading-item">
-                <span *ngIf="i === 0" class="elevator-status-indicator status-success"></span>
-                <span *ngIf="i !== 0" class="elevator-status-indicator status-danger"></span>
-                <span>{{elevator['name']}} (B.1) {{elevator['consumption']}} KW</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <p class="small-widget-heading">Energy Consumption</p>
-      </div>
-    </div>
-    <div class="col-xl-3 col-lg-4">
-      <div class="dashboard-chart bgyellowwidget text-center">
-        <div class="widget-readings-box">
-          <div class="widget-reading-left">
-            <h4>{{overView['maintenanceStats']['underMaintenanceCount']}}</h4>
-            <p>Under Maintenance</p>
-          </div>
-          <div class="widget-reading-right">
-            <h4>{{overView['maintenanceStats']['requiredMaintenanceCount']}}</h4>
-            <p>Scheduled Maintenance</p>
-          </div>
-        </div>
-        <p class="small-widget-heading">Maintenance Stats</p>
-      </div>
-    </div>
-    <div class="col-xl-2 col-lg-3">
-      <div class="dashboard-chart bgorangewidget text-center">
-        <div class="small-widget-chart">
-          <google-chart *ngIf="pieChartObj.dataTable.length" [data]="pieChartObj"></google-chart>
-        </div>
-        <div *ngIf="!pieChartObj.dataTable.length" class="small-widget-chart">
-          <h4>{{overView['elevatorsCount']['alerts']}}</h4>
-        </div>
-        <p class="small-widget-heading">Alerts</p>
-      </div>
-    </div>
-  </div>
+					</div>
+					<p class="small-widget-heading">Maintenance Stats</p>
+				</div>
+			</div>
+			<div class="col-xl-2 col-lg-3">
+				<div class="dashboard-chart bgorangewidget text-center">
+					<div class="small-widget-chart">
+						<google-chart *ngIf="pieChartObj.dataTable.length" [data]="pieChartObj"></google-chart>
+					</div>
+					<div *ngIf="!pieChartObj.dataTable.length" class="small-widget-chart">
+						<h4>{{overView['elevatorsCount']['alerts']}}</h4>
+					</div>
+					<p class="small-widget-heading">Alerts</p>
+				</div>
+			</div>
+		</div>
+		<div class="row mt-4">
+			<div class="col-md-12 col-lg-8">
+				<div *ngIf="buildings.length" class="tab-widget-wrapper">
+					<mat-tab-group (selectedTabChange)="onTabChange($event)">
+						<mat-tab *ngFor="let building of buildings;index as i;" label="{{building['text']}}">
+							<div class="tab-content-inner">
+								<div class="show-data-radio">
+									<div class="radio-group-box">
+										<mat-radio-group (change)="changeGraphFilter(building,$event)" aria-label="Select an option">
+											<mat-radio-button [checked]="type == 'd'?'true':'false'" value="Day">Day</mat-radio-button>
+											<mat-radio-button [checked]="type == 'w'?'true':'false'" value="Week">Week</mat-radio-button>
+											<mat-radio-button [checked]="type == 'm'?'true':'false'" value="Month">Month</mat-radio-button>
+										</mat-radio-group>
+									</div>
+									<div class="tab-link-bar">
+										<a [routerLink]="['/buildings']" href="javascript:;">View All</a>
+									</div>
+								</div>
+								<div class="tab-chart-container">
+									<div class="card-w-bg">
+										<div class="card-inner-col">
+											<div class="card-inner-content">
+												<p>Elevators</p>
+												<h4>{{buildingsDetail['totalElevator']}}</h4>
+											</div>
+										</div>
+										<div class="card-inner-col">
+											<div class="card-inner-content">
+												<p>Total Operating Hours</p>
+												<h4>{{buildingsDetail['totalOperatingHours']}}</h4>
+											</div>
+										</div>
+										<div class="card-inner-col">
+											<div class="card-inner-content">
+												<p>Total Trips</p>
+												<h4>{{buildingsDetail['totalTrips']}}</h4>
+											</div>
+										</div>
+										<div class="card-inner-col">
+											<div class="card-inner-content">
+												<p>Energy Consumption</p>
+												<h4>{{buildingsDetail['totalEnergy']}}</h4>
+											</div>
+										</div>
+									</div>
+									<div class="drag-body dashboard-widget">
+										<div class="panel-heading">
+											<h5 class="panel-title">Operating Hours vs. Energy Consumption</h5>
+										</div>
+										<mat-card class="dashboard-card mat-card">
+											<div class="soil-nutritions">
+												<google-chart *ngIf="comboChart.dataTable.length" [data]="comboChart "></google-chart>
+												<div class="centerclass soil-nutritions" *ngIf="!comboChart.dataTable.length">
+													No Data found
+												</div>
+											</div>
+										</mat-card>
+									</div>
+								</div>
+							</div>
+						</mat-tab>
+					</mat-tab-group>
+				</div>
+				<div *ngIf="!buildings.length" class="centerclass">No records found</div>
+			</div>
+			<div class="col-md-12 col-lg-4 mt-md-4 mt-lg-0">
+				<div class="drag-body dashboard-widget">
+					<div class="panel-heading">
+						<h5 class="panel-title"> Upcoming Maintenance </h5>
+					</div>
+					<mat-card class="dashboard-card mat-card">
+						<ng-scrollbar class="my-scrollbar m-b-45" trackX="false" trackY="true" autohide="false" [compact]="true" *ngIf="maintenanceList.length>0" >
+							<ul style="height: 305px;" class="maintenance-card-list ">
+								<li *ngFor="let list of maintenanceList">
+									<span class="maintain-name">{{list['elevatorName']}} - {{list['building']}}</span>
+									<span class="maintain-details">{{list['description']}}</span>
+									<div class="maintenance-date text-right">
+										<span>{{list['startDateTime'] | date}}</span>
+									</div>
+								</li>
+							</ul>
+						</ng-scrollbar>
+						<div style="height: 305px;" *ngIf="maintenanceList.length==0" class="centerclass">No records found</div>
+					</mat-card>
+				</div>
+				<div class="drag-body dashboard-widget">
+					<div class="panel-heading">
+						<h5 class="panel-title alerts-title"> Alerts </h5>
+						<div style="margin-right: 20px;" class="tab-link-bar">
+						</div>
+					</div>
+					<mat-card class="dashboard-card mat-card">
+						<ng-scrollbar class="my-scrollbar m-b-55" trackX="false" trackY="true" autohide="false" [compact]="true" *ngIf="alerts.length > 0">
+							<ul style="height: 305px;" class="alerts-dashboard alerts-dashboard-legend">
+								<li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
+									<span class="alert-info-title">{{alert['message']}}</span>
+									<span class="alerts-info">{{alert['buildingName']}}</span>
+									<span class="alerts-info text-right p-r-10 alerts-date-text">{{getLocalDate(alert['eventDate'])}}</span>
+								</li>
+							</ul>
+						</ng-scrollbar>
+						<div style="height: 305px;margin-bottom:33px;" *ngIf="!alerts.length" class="centerclass">No records found</div>
+						<div class="alert-indicator-wrapper">
+							<div class="alert-indicator-list">
+								<div class="alert-indicator Critical">
+									<span class="legend"></span>
+									<span class="alert-text">Critical</span>
+								</div>
+								<div class="alert-indicator Information">
+									<span class="legend"></span>
+									<span class="alert-text">Information</span>
+								</div>
+								<div class="alert-indicator Major">
+									<span class="legend"></span>
+									<span class="alert-text">Major</span>
+								</div>
+								<div class="alert-indicator Minor">
+									<span class="legend"></span>
+									<span class="alert-text">Minor</span>
+								</div>
+								<div class="alert-indicator Warning">
+									<span class="legend"></span>
+									<span class="alert-text">Warning</span>
+								</div>
+							</div>
+						</div>
+					</mat-card>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="default-system-dashboard" *ngIf="isDynamicDashboard && dashboardList.length > 0">
+	<app-size-detector (deviceSizeChange)="deviceSizeChange($event)"></app-size-detector>
+	<div class="main-content">
+		<div class="gridster-wrapper">
+			<gridster [options]="options" class="gridster white-bkd" #gridster>
+				<gridster-item [item]="item" *ngFor="let item of dashboardWidgets;let index = index;" [class]="item.properties?.className +' '+ item.componentName" [ngStyle]="{'background': (item.type == 'counter' ? item.widgetProperty?.background : '#fff'),'width':item.properties?.w+'px','height':item.properties?.h+'px'}">
+					<app-widget-counter-a *ngIf="item.componentName === 'widget-counter-a'" [resizeEvent]="resizeEvent" [widget]="item" [count]="overView.buildingCount">
 
-  <div class="row mt-4">
-    <div class="col-md-12 col-lg-8">
-      <div *ngIf="buildings.length" class="tab-widget-wrapper">
-        <mat-tab-group (selectedTabChange)="onTabChange($event)">
-          <mat-tab *ngFor="let building of buildings;index as i;" label="{{building['text']}}">
-            <div class="tab-content-inner">
-              <div class="show-data-radio">
-                <div class="radio-group-box">
-                  <mat-radio-group (change)="changeGraphFilter(building,$event)" aria-label="Select an option">
-                    <mat-radio-button [checked]="type == 'd'?'true':'false'" value="Day">Day</mat-radio-button>
-                    <mat-radio-button [checked]="type == 'w'?'true':'false'" value="Week">Week</mat-radio-button>
-                    <mat-radio-button [checked]="type == 'm'?'true':'false'" value="Month">Month</mat-radio-button>
-                  </mat-radio-group>
-                </div>
-                <div class="tab-link-bar">
-                  <a [routerLink]="['/buildings']" href="javascript:;">View All</a>
-                </div>
-              </div>
-              <div class="tab-chart-container">
-                <div class="card-w-bg">
-                  <div class="card-inner-col">
-                    <div class="card-inner-content">
-                      <p>Elevators</p>
-                      <h4>{{buildingsDetail['totalElevator']}}</h4>
-                    </div>
-                  </div>
-                  <div class="card-inner-col">
-                    <div class="card-inner-content">
-                      <p>Total Operating Hours</p>
-                      <h4>{{buildingsDetail['totalOperatingHours']}}</h4>
-                    </div>
-                  </div>
-                  <div class="card-inner-col">
-                    <div class="card-inner-content">
-                      <p>Total Trips</p>
-                      <h4>{{buildingsDetail['totalTrips']}}</h4>
-                    </div>
-                  </div>
-                  <div class="card-inner-col">
-                    <div class="card-inner-content">
-                      <p>Energy Consumption</p>
-                      <h4>{{buildingsDetail['totalEnergy']}}</h4>
-                    </div>
-                  </div>
-                </div>
-                <div class="drag-body dashboard-widget">
-                  <div class="panel-heading">
-                    <h5 class="panel-title">Operating Hours vs. Energy Consumption</h5>
-                    <!-- <ul class="filter-for-chart">
-                      <li>
-                        <button [disableRipple]="true" mat-icon-button>
-                          <mat-icon>more_horiz</mat-icon>
-                        </button>
-                      </li>
-                    </ul> -->
-                  </div>
-                  <mat-card class="dashboard-card mat-card">
-                    <div class="soil-nutritions">
-                      <google-chart *ngIf="comboChart.dataTable.length" [data]="comboChart "></google-chart>
-                      <div class="centerclass soil-nutritions" *ngIf="!comboChart.dataTable.length">
-                        No Data found
-                      </div>
-                    </div>
-                  </mat-card>
-                </div>
-              </div>
-            </div>
-          </mat-tab>
-        </mat-tab-group>
+					</app-widget-counter-a>
+					<app-widget-counter-b *ngIf="item.componentName === 'widget-counter-b'" [resizeEvent]="resizeEvent" [widget]="item" [count]="overView.elevatorsCount.alerts">
+					</app-widget-counter-b>
+					<app-widget-counter-c *ngIf="item.componentName === 'widget-counter-c'" [resizeEvent]="resizeEvent" [widget]="item" [count]="overView.maintenanceStats.underMaintenanceCount">
+					</app-widget-counter-c>
+					<app-widget-counter-d *ngIf="item.componentName === 'widget-counter-d'" [resizeEvent]="resizeEvent" [widget]="item" [count]="{total:overView.energy.totalConsumption,elevators:overView.energy.elevators}">
+					</app-widget-counter-d>
+					<app-widget-counter-e *ngIf="item.componentName === 'widget-counter-e'" [resizeEvent]="resizeEvent" [widget]="item" [count]="{totalElevators:overView.elevatorsCount.total,totalConnectedElevators:overView.elevatorsCount.connected}">
+					</app-widget-counter-e>
+					<app-widget-counter-f *ngIf="item.componentName === 'widget-counter-f'" [resizeEvent]="resizeEvent" [widget]="item" [count]="{total:overView.totalUserCount,active:overView.activeUserCount,inactive:overView.inactiveUserCount}">
+					</app-widget-counter-f>
 
-      </div>
-      <div *ngIf="!buildings.length" class="centerclass">No records found</div>
-    </div>
-    <div class="col-md-12 col-lg-4 mt-md-4 mt-lg-0">
-      <div class="drag-body dashboard-widget">
-        <div class="panel-heading">
-          <h5 class="panel-title"> Upcoming Maintenance </h5>
-        </div>
-        <mat-card class="dashboard-card mat-card">
-          <ul style="height: 335px;" *ngIf="maintenanceList.length>0" class="maintenance-card-list ">
-            <li *ngFor="let list of maintenanceList">
-              <span class="maintain-name">{{list['elevatorName']}} - {{list['building']}}</span>
-              <span class="maintain-details">{{list['description']}}</span>
-              <div class="maintenance-date text-right">
-                <span>{{list['scheduledDate'] | date}}</span>
-              </div>
-            </li>
-          </ul>
-          <div style="height: 335px;" *ngIf="maintenanceList.length==0" class="centerclass">No records found</div>
-        </mat-card>
-      </div>
-      <div class="drag-body dashboard-widget">
-        <div class="panel-heading">
-          <h5 class="panel-title alerts-title"> Alerts </h5>
-          <div style="margin-right: 20px;" class="tab-link-bar">
-            <a [routerLink]="['/alerts']" href="javascript:;">View All</a>
-          </div>
-        </div>
-        <mat-card class="dashboard-card mat-card">
-          <ul style="height: 335px;" *ngIf="alerts.length > 0" class="alerts-dashboard alerts-dashboard-legend">
-            <li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
-              <span class="alert-info-title">{{alert['message']}}</span>
-              <span class="alerts-info">{{alert['buildingName']}}</span>
-              <span class="alerts-info text-right p-r-10 alerts-date-text">{{getLocalDate(alert['eventDate'])}}</span>
-            </li>
-          </ul>
-          <div style="height: 335px;margin-bottom:33px;" *ngIf="!alerts.length" class="centerclass">No records found</div>
-          <div class="alert-indicator-wrapper">
-            <div class="alert-indicator-list">
-              <div class="alert-indicator Critical">
-                <span class="legend"></span>
-                <span class="alert-text">Critical</span>
-              </div>
-              <div class="alert-indicator Information">
-                <span class="legend"></span>
-                <span class="alert-text">Information</span>
-              </div>
-              <div class="alert-indicator Major">
-                <span class="legend"></span>
-                <span class="alert-text">Major</span>
-              </div>
-              <div class="alert-indicator Minor">
-                <span class="legend"></span>
-                <span class="alert-text">Minor</span>
-              </div>
-              <div class="alert-indicator Warning">
-                <span class="legend"></span>
-                <span class="alert-text">Warning</span>
-              </div>
-            </div>
-          </div>
-        </mat-card>
-      </div>
-    </div>
-  </div>
+					<app-widget-alert-a *ngIf="item.componentName === 'widget-alert-a'" [resizeEvent]="resizeEvent" [alertLimitchangeEvent]="alertLimitchangeEvent" [widget]="item">
+					</app-widget-alert-a>
+
+					<app-widget-alert-b *ngIf="item.componentName === 'widget-alert-b'" [resizeEvent]="resizeEvent" [alertLimitchangeEvent]="alertLimitchangeEvent" [widget]="item">
+					</app-widget-alert-b>
+
+					<app-widget-chart-a [class]="item.properties?.className +' '+ item.componentName" [ngStyle]="{'width':item.properties?.w+'px',
+					'height':item.properties?.h+'px'}" *ngIf="item.componentName === 'widget-chart-a'" [resizeEvent]="resizeEvent" [chartTypeChangeEvent]="chartTypeChangeEvent" [widget]="item" [gridster]="gridster"></app-widget-chart-a>
+
+					<app-widget-chart-b [class]="item.properties?.className +' '+ item.componentName" [ngStyle]="{'width':item.properties?.w+'px',
+					'height':item.properties?.h+'px'}" *ngIf="item.componentName === 'widget-chart-b'" [resizeEvent]="resizeEvent" [chartTypeChangeEvent]="chartTypeChangeEvent" [telemetryDeviceChangeEvent]="telemetryDeviceChangeEvent" [telemetryAttributeChangeEvent]="telemetryAttributeChangeEvent" [widget]="item" [deviceData]="deviceData"></app-widget-chart-b>
+				</gridster-item>
+			</gridster>
+		</div>
+	</div>
 </div>

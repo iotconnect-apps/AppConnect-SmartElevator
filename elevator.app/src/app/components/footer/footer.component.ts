@@ -17,24 +17,6 @@ export class FooterComponent implements OnInit, AfterViewInit {
 
 
 	ngAfterViewInit() {
-	
-
-		// $('.dropdown-more').each(function () {
-		// 	var parent = $(this);
-		// 	var more = parent.find('.dropdown-more-caption');
-		// 	var classOpen = 'opened';
-
-		// 	more.click(function () {
-		// 		if (parent.hasClass(classOpen)) {
-		// 			parent.removeClass(classOpen);
-		// 		} else {
-		// 			parent.addClass(classOpen);
-		// 		}
-		// 	});
-		// });
-
-
-		
 		function fileManagerHeight() {
 			$('.files-manager').each(function () {
 				var box = $(this),

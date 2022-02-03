@@ -219,6 +219,21 @@ namespace host.iot.solution.Controllers
             return response;
         }
 
+        [HttpGet]
+        [Route(LookupRoute.Route.GetElevatorLookupByCompany, Name = LookupRoute.Name.GetElevatorLookupByCompany)]
+        public Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorLookupDetail>>> GetElevatorLookupByCompany()
+        {
+            Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorLookupDetail>>> response = new Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorLookupDetail>>>(true);
+            try
+            {
+                response.Data = _service.ElevatorLookupByCompany();
+            }
+            catch (Exception ex)
+            {
+                return new Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorLookupDetail>>>(false, ex.Message);
+            }
+            return response;
+        }
 
         [HttpGet]
         [Route(LookupRoute.Route.GetElevatorLookupByBuilding, Name = LookupRoute.Name.GetElevatorLookupByBuilding)]

@@ -22,11 +22,13 @@ namespace iot.solution.service.Data
         private readonly IUserRepository _userRepository;
         private readonly LogHandler.Logger _logger;
         private readonly IotConnectClient _iotConnectClient;
+        private readonly ICompanyRepository _companyRepository;
 
-        public UserService(IUserRepository userRepository, LogHandler.Logger logManager)
+        public UserService(IUserRepository userRepository, ICompanyRepository companyRepository, LogHandler.Logger logManager)
         {
             _logger = logManager;
             _userRepository = userRepository;
+            _companyRepository = companyRepository;
             _iotConnectClient = new IotConnectClient(SolutionConfiguration.BearerToken, SolutionConfiguration.Configuration.EnvironmentCode, SolutionConfiguration.Configuration.SolutionKey);
         }
         public List<Entity.User> Get()
@@ -310,6 +312,43 @@ namespace iot.solution.service.Data
             catch (Exception ex)
             {
                 _logger.ErrorLog(ex, $"UserManager.Login {ex.Message}");
+                return new Entity.ActionStatus(false, ex.Message);
+            }
+            return result;
+        }
+        public Entity.ActionStatus Identity(string token)
+        {
+            Entity.ActionStatus result = new Entity.ActionStatus(true);
+            try
+            {
+                IOT.DataResponse<IdentityResult> identityResult = _iotConnectClient.Login.Identity(token).Result;
+                result.Success = identityResult.status;
+                if (identityResult != null && identityResult.status)
+                {
+                    //if (!string.IsNullOrEmpty(identityResult.data.data.companyGuid) && (SolutionConfiguration.CompanyId == null || SolutionConfiguration.CompanyId == Guid.Empty))
+                    //{
+                    //    var companyDetail = _companyRepository.GetByUniqueId(x => x.Guid.Equals(Guid.Parse(identityResult.data.data.companyGuid)) && !x.IsDeleted && x.IsActive.HasValue && x.IsActive.Value);
+                    //    if (companyDetail == null)
+                    //    {
+                    //        return new Entity.ActionStatus(false, "Company not exists");
+                    //    }
+                    //}
+                    //var subscriptionResult = _iotConnectClient.User.GetQuotaExhaustedNotification(token).Result;
+                    ////var res = _userRepository.GetSubscriptionStatus(identityResult.data.data.userGuid);
+                    //if (subscriptionResult.data.expiredDate < DateTime.UtcNow)
+                    //{
+                    //    return new Entity.ActionStatus(false, "Subscription expired");
+                    //}
+                    result.Data = identityResult.data;                   
+                }
+                else
+                {
+                    result.Message = identityResult.message;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorLog(ex, this.GetType().Name, MethodBase.GetCurrentMethod().Name);
                 return new Entity.ActionStatus(false, ex.Message);
             }
             return result;

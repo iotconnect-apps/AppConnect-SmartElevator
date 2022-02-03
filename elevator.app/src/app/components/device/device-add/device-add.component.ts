@@ -130,7 +130,7 @@ export class DeviceAddComponent implements OnInit {
 				this.spinner.hide();
 			}, error => {
 				this.spinner.hide();
-				this._notificationService.add(new Notification('error', error));
+				this._notificationService.handleResponse(error,"error");
 			});
 
 	}
@@ -149,11 +149,11 @@ export class DeviceAddComponent implements OnInit {
 			if (response.isSuccess === true) {
 				this.deviceObject = response.data;
 			} else {
-				this._notificationService.add(new Notification('error', response.message));
+				this._notificationService.handleResponse(response,"error");
 			}
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 
@@ -167,7 +167,7 @@ export class DeviceAddComponent implements OnInit {
 			//Get tags lookup once parent device data is fetched
 			this.getTagsLookup();
 		} else {
-			this._notificationService.add(new Notification('error', response.message));
+			this._notificationService.handleResponse(response,"error");
 		}
 
 	}
@@ -179,7 +179,7 @@ export class DeviceAddComponent implements OnInit {
 		if (response.isSuccess === true) {
 			this.buildingList = response['data'];
 		} else {
-			this._notificationService.add(new Notification('error', response.message));
+			this._notificationService.handleResponse(response,"error");
 		}
 	}
 
@@ -192,7 +192,7 @@ export class DeviceAddComponent implements OnInit {
 		if (response.isSuccess === true) {
 			this.templateList = response['data'];
 		} else {
-			this._notificationService.add(new Notification('error', response.message));
+			this._notificationService.handleResponse(response,"error");
 		}
 	}
 
@@ -207,21 +207,16 @@ export class DeviceAddComponent implements OnInit {
 					if (response.isSuccess === true) {
 						this.tagList = response['data'];
 					} else {
-						this._notificationService.add(new Notification('error', response.message));
+						this._notificationService.handleResponse(response,"error");
 					}
 				}, error => {
 					this.spinner.hide();
-					this._notificationService.add(new Notification('error', error));
+					this._notificationService.handleResponse(error,"error");
 				})
 		}
 
 	}
-
-	log(obj) {
-		console.log(obj);
-	}
-
-
+	
 	/**
 	 * Find a value from the look up data
 	 * 
@@ -258,13 +253,13 @@ export class DeviceAddComponent implements OnInit {
 				this.spinner.hide();
 				if (response.isSuccess === true) {
 					this.deviceForm.reset();
-					this._notificationService.add(new Notification('success', successMessage));
+					this._notificationService.handleResponse({message:successMessage},"success");
 				} else {
-					this._notificationService.add(new Notification('error', response.message));
+					this._notificationService.handleResponse(response,"error");
 				}
 			}, error => {
 				this.spinner.hide();
-				this._notificationService.add(new Notification('error', error));
+				this._notificationService.handleResponse(error,"error");
 			});
 
 		}

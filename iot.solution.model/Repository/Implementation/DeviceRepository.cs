@@ -283,7 +283,7 @@ namespace iot.solution.model.Repository.Implementation
             return result;
         }
 
-        public Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId)
+        public Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId, DateTime? currentDate = null, string timeZone = "")
         {
             Entity.BaseResponse<List<Response.DeviceDetailsResponse>> result = new Entity.BaseResponse<List<Response.DeviceDetailsResponse>>();
             var deviceDetail = new Entity.BaseResponse<Response.DeviceDetailsResponse>();
@@ -292,9 +292,15 @@ namespace iot.solution.model.Repository.Implementation
                 logger.InfoLog(Constants.ACTION_ENTRY, "DeviceRepository.GetDeviceDetail");
                 using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
                 {
-                     List<System.Data.Common.DbParameter> parameters = sqlDataAccess.CreateParams(component.helper.SolutionConfiguration.CompanyId, component.helper.SolutionConfiguration.Version);
+                    DateTime dateValue;
+                    if (DateTime.TryParse(currentDate.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(timeZone));
+                    }
+                    List<System.Data.Common.DbParameter> parameters = sqlDataAccess.CreateParams(component.helper.SolutionConfiguration.CompanyId, component.helper.SolutionConfiguration.Version);
                     parameters.Add(sqlDataAccess.CreateParameter("guid", deviceId, DbType.Guid, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("enableDebugInfo", component.helper.SolutionConfiguration.EnableDebugInfo, DbType.String, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("currentDate", dateValue, DbType.DateTime, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("syncDate", DateTime.UtcNow, DbType.DateTime, ParameterDirection.Output));
                     System.Data.Common.DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[ElevatorStatistics_Get]", CommandType.StoredProcedure, null), parameters.ToArray());
                     result.Data = DataUtils.DataReaderToList<Response.DeviceDetailsResponse>(dbDataReader, null);
@@ -302,12 +308,31 @@ namespace iot.solution.model.Repository.Implementation
                     {
                         result.LastSyncDate = Convert.ToString(parameters.Where(p => p.ParameterName.Equals("syncDate")).FirstOrDefault().Value);
                     }
-                    if (result.Data.Count > 0)
+                    Response.DeviceDetailsResponse obj = new Response.DeviceDetailsResponse();
+                    obj.UniqueId = "";
+                    obj.Day = 0;
+                    obj.Hour = 0;
+                    obj.Minute = 0;
+                    if (result.Data !=null && result.Data.Count > 0)
                     {
-                        deviceDetail.Data = result.Data[0];
-                        deviceDetail.LastSyncDate = result.LastSyncDate;
-                        deviceDetail.IsSuccess = true;
-                    }
+                        var data = result.Data[0];
+                        if (data.StartDateTime != DateTime.MinValue)
+                        {
+                            dateValue = data.StartDateTime;//.AddMinutes(-double.Parse(timeZone)); //TimeZoneInfo.ConvertTimeBySystemTimeZoneId(data.StartDateTime, "UTC", timeZone);
+                            TimeSpan span = (dateValue -DateTime.UtcNow);
+                            obj.Day = span.Days;
+                            obj.Hour = span.Hours;
+                            obj.Minute = span.Minutes;
+                            obj.UniqueId = data.UniqueId;
+                        }
+                    }                    
+                    obj.StartDateTime = dateValue;
+
+                    deviceDetail.Data = obj;
+                    deviceDetail.LastSyncDate = result.LastSyncDate;
+                    deviceDetail.IsSuccess = true;
+
+                   
                 }
                 logger.InfoLog(Constants.ACTION_EXIT, "DeviceRepository.GetDeviceDetail");
             }

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router'
 import { FormControl, FormGroup, Validators, FormBuilder } from '@angular/forms'
 import { NgxSpinnerService } from 'ngx-spinner'
 import { AppConstant } from "../../app.constants";
-import { NotificationService, UsersService, Notification } from '../../services';
+import { NotificationService, UserService, Notification } from '../../services';
 import { CustomValidators } from '../../helpers/custom.validators';
 
 @Component({
@@ -41,7 +41,7 @@ public contactNoError:boolean=false;
     private _notificationService: NotificationService,
     private activatedRoute: ActivatedRoute,
     private spinner: NgxSpinnerService,
-    public userService: UsersService,
+    public userService: UserService,
     public _appConstant: AppConstant
   ) {
     this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -91,11 +91,11 @@ public contactNoError:boolean=false;
         console.log(this.userObject);
       } else {
         response.message ? response.message : response.message = 'No data found';
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
@@ -110,12 +110,12 @@ public contactNoError:boolean=false;
       if (response.isSuccess === true && response.data) {
         this.userObject = response.data;
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.userObject = {};
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
@@ -129,12 +129,12 @@ public contactNoError:boolean=false;
       if (response.isSuccess === true) {
         this.timezoneList = response.data;
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.timezoneList = {};
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
 
 
@@ -171,13 +171,13 @@ public contactNoError:boolean=false;
         if (response.isSuccess === true) {
           let successMessage = this._appConstant.msgUpdated.replace("modulename", "Profile");
           this._appConstant.username = response.data.firstName + ' ' + response.data.lastName;
-          this._notificationService.add(new Notification('success', successMessage));
+          this._notificationService.handleResponse({message:successMessage},"success");
         } else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       });
     }
   }
@@ -216,13 +216,13 @@ public contactNoError:boolean=false;
         if (response.isSuccess === true) {
           let successMessage = this._appConstant.msgUpdated.replace("modulename", "Profile");
           this._appConstant.username = response.data.firstName + ' ' + response.data.lastName;
-          this._notificationService.add(new Notification('success', successMessage));
+          this._notificationService.handleResponse({message:successMessage},"success");
         } else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       });
     }
   }

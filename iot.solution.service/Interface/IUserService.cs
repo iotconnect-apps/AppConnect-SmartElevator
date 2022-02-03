@@ -14,6 +14,7 @@ namespace iot.solution.service.Interface
         Entity.ActionStatus Delete(Guid id);
         Entity.ActionStatus ChangePassword(Entity.ChangePasswordRequest request);
         Entity.ActionStatus Login(Entity.LoginRequest request);
+        Entity.ActionStatus Identity(string token);
         Entity.LoginResponse RefreshToken(Entity.RefreshTokenRequest request);
         Entity.ActionStatus UpdateStatus(Guid id, bool status);
     }

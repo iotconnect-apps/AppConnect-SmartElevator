@@ -29,6 +29,9 @@ namespace iot.solution.entity
         public string MinorAlertCount { get; set; }
         public string WarningAlertCount { get; set; }
         public string TotalAlert { get; set; }
+        public int ActiveUserCount { get; set; }
+        public int InactiveUserCount { get; set; }
+        public int TotalUserCount { get; set; }
         public string MinElevatorName { get; set; }
         public string MaxElevatorName { get; set; }  
         public Dictionary<string, string> Alerts { get; set; }

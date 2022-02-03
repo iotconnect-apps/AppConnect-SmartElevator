@@ -5,6 +5,7 @@ DECLARE @output INT = 0
 EXEC [dbo].[BuildingStatistics_Get]
 	 @guid				= '7548D722-D3B5-4D79-AE44-61B307DB979C'	
 	,@frequency			= 'W'
+	,@currentDate	= '2020-05-21 06:47:56.890'
 	,@invokingUser  	= '7D31E738-5E24-4EA2-AAEF-47BB0F3CCD41'
 	,@version			= 'v1'
 	,@output			= @output		OUTPUT
@@ -18,7 +19,8 @@ EXEC [dbo].[BuildingStatistics_Get]
 
 CREATE PROCEDURE [dbo].[BuildingStatistics_Get]
 (	 @guid				UNIQUEIDENTIFIER	
-	,@frequency			CHAR(1)				= NULL			
+	,@frequency			CHAR(1)				= NULL	
+	,@currentDate		DATETIME			= NULL
 	,@invokingUser		UNIQUEIDENTIFIER	= NULL
 	,@version			NVARCHAR(10)
 	,@output			SMALLINT		  OUTPUT
@@ -38,6 +40,7 @@ BEGIN
             SELECT 'BuildingStatistics_Get' AS '@procName'
 			, CONVERT(nvarchar(MAX),@guid) AS '@guid'			
 			, @frequency AS '@frequency'
+			, CONVERT(VARCHAR(50),@currentDate) as '@currentDate'
 	        , CONVERT(nvarchar(MAX),@invokingUser) AS '@invokingUser'
 			, CONVERT(nvarchar(MAX),@version) AS '@version'
 			, CONVERT(nvarchar(MAX),@output) AS '@output'
@@ -108,13 +111,19 @@ BEGIN
 				WHERE CONVERT(Date,T.[date]) BETWEEN CONVERT(DATE,@endDate) AND CONVERT(DATE,@dt)
 				GROUP BY EN.[building]
 		), CTE_Maintenance
-		AS (	SELECT EN.[building], COUNT(1) AS [count]
-				FROM [dbo].[ElevatorMaintenance] T (NOLOCK) 
-				INNER JOIN [dbo].[Elevator] E (NOLOCK) ON T.[elevatorGuid] = E.[guid] AND E.[isDeleted] = 0 AND T.[status] = 'completed'
-				INNER JOIN #Entity EN ON EN.[guid] = E.[entityGuid]
-				WHERE CONVERT(Date,T.[createdDate]) BETWEEN CONVERT(DATE,@endDate) AND CONVERT(DATE,@dt)
-				GROUP BY EN.[building]
-		)
+		AS (	SELECT EN.[building] AS [building]
+					, DM.[guid] AS [guid]
+					,CASE WHEN @currentDate >= [startDateTime] AND @currentDate <= [endDateTime]
+					 THEN 'Under Maintenance'
+					 ELSE CASE WHEN [startDateTime] < @currentDate AND [endDateTime] < @currentDate 
+					 THEN 'Completed'
+					 ELSE 'Scheduled'
+					 END
+					 END AS [status]
+				FROM dbo.[ElevatorMaintenance] DM (NOLOCK) 
+				INNER JOIN #Entity EN ON EN.[guid] = DM.[entityGuid]
+				WHERE [IsDeleted]=0 
+			)
 		, CTE_Alerts
 		AS (	SELECT EN.[building], COUNT(1) AS [count]
 				FROM [dbo].[IOTConnectAlert] T (NOLOCK) 
@@ -128,14 +137,17 @@ BEGIN
 				, ISNULL(EN.[count],0) AS [totalEnergy]
 				, ISNULL(OH.[count],0) AS [totalOperatingHours]
 				, ISNULL(TP.[count],0) AS [totalTrips]
-				, ISNULL(CM.[count],0) AS [totalMaintenance]
+				, ISNULL(CM.[underMaintenanceCount],0) AS [totalUnderMaintenanceCount]
 				, ISNULL(CA.[count],0) AS [totalAlerts]
 		FROM [dbo].[Entity] E (NOLOCK) 
 		LEFT JOIN CTE_ElevatorCount B ON E.[guid] = B.[building]
 		LEFT JOIN CTE_EnergyCount EN ON E.[guid] = EN.[building]
 		LEFT JOIN CTE_OperationgHoursCount OH ON E.[guid] = OH.[building]
 		LEFT JOIN CTE_TripCount TP ON E.[guid] = TP.[building]
-		LEFT JOIN CTE_Maintenance CM ON E.[guid] = CM.[building]
+		LEFT JOIN (SELECT M.[building], COUNT(1) AS [underMaintenanceCount]
+					FROM CTE_Maintenance M 
+					WHERE M.[status] IN ('Under Maintenance','Scheduled')
+					GROUP BY M.[building]) CM ON E.[guid] = CM.[building]
 		LEFT JOIN CTE_Alerts CA ON E.[guid] = CA.[building]
 		WHERE E.[guid] = @guid AND E.[isDeleted]=0
 
@@ -168,12 +180,19 @@ BEGIN
 				INNER JOIN #Entity EN ON EN.[guid] = E.[entityGuid]
 				GROUP BY EN.[building]
 		), CTE_Maintenance
-		AS (	SELECT EN.[building], COUNT(1) AS [count]
-				FROM [dbo].[ElevatorMaintenance] T (NOLOCK) 
-				INNER JOIN [dbo].[Elevator] E (NOLOCK) ON T.[elevatorGuid] = E.[guid] AND E.[isDeleted] = 0 AND T.[status] = 'completed'
-				INNER JOIN #Entity EN ON EN.[guid] = E.[entityGuid]
-				GROUP BY EN.[building]
-		)
+		AS (	SELECT EN.[building]
+					, DM.[guid] AS [guid]
+					,CASE WHEN @currentDate >= [startDateTime] AND @currentDate <= [endDateTime]
+					 THEN 'Under Maintenance'
+					 ELSE CASE WHEN [startDateTime] < @currentDate AND [endDateTime] < @currentDate 
+					 THEN 'Completed'
+					 ELSE 'Scheduled'
+					 END
+					 END AS [status]
+				FROM dbo.[ElevatorMaintenance] DM (NOLOCK)
+				INNER JOIN #Entity EN ON EN.[guid] = DM.[entityGuid] 
+				WHERE [IsDeleted]=0 
+			)
 		, CTE_Alerts
 		AS (	SELECT EN.[building], COUNT(1) AS [count]
 				FROM [dbo].[IOTConnectAlert] T (NOLOCK) 
@@ -186,14 +205,17 @@ BEGIN
 				, ISNULL(EN.[count],0) AS [totalEnergy]
 				, ISNULL(OH.[count],0) AS [totalOperatingHours]
 				, ISNULL(TP.[count],0) AS [totalTrips]
-				, ISNULL(CM.[count],0) AS [totalMaintenance]
+				, ISNULL(CM.[underMaintenanceCount],0) AS [totalUnderMaintenanceCount]
 				, ISNULL(CA.[count],0) AS [totalAlerts]
 		FROM [dbo].[Entity] E (NOLOCK) 
 		LEFT JOIN CTE_ElevatorCount B ON E.[guid] = B.[building]
 		LEFT JOIN CTE_EnergyCount EN ON E.[guid] = EN.[building]
 		LEFT JOIN CTE_OperationgHoursCount OH ON E.[guid] = OH.[building]
 		LEFT JOIN CTE_TripCount TP ON E.[guid] = TP.[building]
-		LEFT JOIN CTE_Maintenance CM ON E.[guid] = CM.[building]
+		LEFT JOIN (SELECT M.[building], COUNT(1) AS [underMaintenanceCount]
+					FROM CTE_Maintenance M 
+					WHERE M.[status] IN ('Under Maintenance','Scheduled')
+					GROUP BY M.[building]) CM ON E.[guid] = CM.[building]
 		LEFT JOIN CTE_Alerts CA ON E.[guid] = CA.[building]
 		WHERE E.[guid] = @guid AND E.[isDeleted]=0
 

@@ -3796,4 +3796,8 @@ app-sitelayout > .mat-drawer-container .mat-drawer-content {
 	border-radius: 50%;
 	cursor: pointer;
 }
+.owl-dt-popup-container{
+	top:-150px !important; 
+  }
 
+.fixed section.content-wrapper {min-height: 608px; }

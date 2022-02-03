@@ -49,10 +49,16 @@ export class BuildingListComponent implements OnInit {
     this.getbuildingList();
   }
 
+  /**
+	* For Goto Add building Section
+	**/
   clickAdd() {
     this.router.navigate(["/building/add"]);
   }
 
+  /**
+  * For Set building listing order
+	**/
   setOrder(sort: any) {
     console.log(sort);
     if (!sort.active || sort.direction === '') {
@@ -62,6 +68,9 @@ export class BuildingListComponent implements OnInit {
     this.getbuildingList();
   }
 
+  /**
+  * For open delete confirmation model for building
+	**/
   deleteModel(userModel: any) {
     this.deleteAlertDataModel = {
       title: "Delete Building",
@@ -82,6 +91,9 @@ export class BuildingListComponent implements OnInit {
     });
   }
 
+  /**
+  * For manage paggination
+	**/
   onPageSizeChangeCallback(pageSize) {
     this.searchParameters.pageSize = pageSize;
     this.searchParameters.pageNumber = 1;
@@ -89,6 +101,9 @@ export class BuildingListComponent implements OnInit {
     this.getbuildingList();
   }
 
+  /**
+  * For Manage building status
+	**/
   activeInactivebuilding(id: string, isActive: boolean, name: string) {
     var status = isActive == false ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
     var mapObj = {
@@ -119,6 +134,9 @@ export class BuildingListComponent implements OnInit {
 
   }
 
+  /**
+  * For Manage pagination page change event
+	**/
   ChangePaginationAsPageChange(pagechangeresponse) {
     this.searchParameters.pageNumber = pagechangeresponse.pageIndex;
     this.searchParameters.pageSize = pagechangeresponse.pageSize;
@@ -126,6 +144,9 @@ export class BuildingListComponent implements OnInit {
     this.getbuildingList();
   }
 
+  /**
+	* For search text call back
+	**/
   searchTextCallback(filterText) {
     this.searchParameters.searchText = filterText;
     this.searchParameters.pageNumber = 0;
@@ -133,6 +154,9 @@ export class BuildingListComponent implements OnInit {
     this.isSearch = true;
   }
 
+  /**
+	* For get building list
+	**/
   getbuildingList() {
     this.spinner.show();
     this.buildingService.getBuilding(this.searchParameters).subscribe(response => {
@@ -148,51 +172,56 @@ export class BuildingListComponent implements OnInit {
         }
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.buildingList = [];
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For get building detail
+	**/
   deletebuilding(guid) {
     this.spinner.show();
     this.buildingService.deleteBuilding(guid).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Building")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Building")},"success");
         this.getbuildingList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For fire event on change building
+	**/
   changeBuildingStatus(id, isActive) {
-
     this.spinner.show();
     this.buildingService.changeStatus(id, isActive).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "Building")));
+        this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "Building")},"success");
         this.getbuildingList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 }

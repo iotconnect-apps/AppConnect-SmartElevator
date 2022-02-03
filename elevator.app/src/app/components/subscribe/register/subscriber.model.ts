@@ -19,7 +19,7 @@ export class RequestSubscriberFormModel {
   @maxLength({ value: 50, message: 'You have reached the maximum character limit for this field.' })
   @pattern({
     expression: {
-      'email': /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$/
+      'email': /^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/ 
     }, message: "Invalid Email"
   })
   email: string;

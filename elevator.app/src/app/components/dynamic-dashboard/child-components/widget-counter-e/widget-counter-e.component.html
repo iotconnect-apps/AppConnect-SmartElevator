@@ -1,0 +1,22 @@
+<div class="dashboard-chart text-center">
+	<div class="m-t-10 topwidget-icon" *ngIf="widget.widgetProperty?.contents?.icon?.isRequired">
+		<i [ngStyle]="{'color':widget.widgetProperty?.contents?.icon?.fontColor}"
+		class="{{widget?.widgetProperty?.contents?.icon?.iconClass}} fa-{{widget?.widgetProperty?.contents?.icon?.fontSize}}x"></i>
+	</div>
+	<div class="m-t-10 circle-progress-wrapper" style="height: 60%;width: 60%;">
+		<div class="circle-progress-text">
+			<p class="current" [ngStyle]="{
+				'font-size':widget.widgetProperty?.contents?.count?.fontSize+'px',
+				'font-family':widget.widgetProperty?.contents?.count?.fontFamily,
+				'color':widget.widgetProperty?.contents?.count?.fontColor}">
+				{{ count.totalConnectedElevators }}/{{ count.totalElevators }}
+			</p>
+			<p class="small-widget-heading" [ngStyle]="{
+			'font-size':widget.widgetProperty?.contents?.entities?.fontSize+'px',
+			'font-family':widget.widgetProperty?.contents?.entities?.fontFamily,
+			'color':widget.widgetProperty?.contents?.entities?.fontColor}">{{widget?.widgetProperty?.contents?.entities?.title}}</p>
+		</div>
+		<round-progress [current]="count.totalConnectedElevators" [max]="count.totalElevators" [color]="'#28a749'" [background]="'#eaeaea'" [radius]="100" [stroke]="20" [rounded]="false" [responsive]="'true'" [duration]="800" [animation]="'easeInOutQuart'" [animationDelay]="0">
+		</round-progress>
+	</div>
+</div>

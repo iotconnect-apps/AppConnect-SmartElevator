@@ -5,6 +5,7 @@ DECLARE @count INT
 
 EXEC [dbo].[ElevatorMaintenance_UpComingList]
 	 @guid	= 'FA973382-0321-4701-A03E-CDDEAEC9F68B'
+	,@currentDate	= '2020-05-21 06:47:56.890'
 	,@count			= @count OUTPUT
 	,@invokingUser  = 'C1596B8C-7065-4D63-BFD0-4B835B93DFF2'
 	,@version		= 'v1'
@@ -21,6 +22,7 @@ CREATE PROCEDURE [dbo].[ElevatorMaintenance_UpComingList]
 (	@companyGuid		UNIQUEIDENTIFIER	= NULL
 	,@entityGuid		UNIQUEIDENTIFIER	= NULL
 	,@guid				UNIQUEIDENTIFIER	= NULL
+	,@currentDate		DATETIME			= NULL
 	,@invokingUser		UNIQUEIDENTIFIER	= NULL
 	,@version			VARCHAR(10)
 	,@culture			VARCHAR(10)			= 'en-Us'
@@ -42,6 +44,7 @@ BEGIN
             	, CONVERT(VARCHAR(MAX),@companyGuid) AS '@companyGuid'
 				, CONVERT(VARCHAR(MAX),@entityGuid) AS '@entityGuid'
             	, CONVERT(VARCHAR(MAX),@guid) AS '@guid'
+				, CONVERT(VARCHAR(50),@currentDate) as '@currentDate'
 				, CONVERT(VARCHAR(MAX),@version) AS '@version'
             	, CONVERT(VARCHAR(MAX),@invokingUser) AS '@invokingUser'
             FOR XML PATH('Params')
@@ -60,7 +63,8 @@ BEGIN
 			, EP.[name] AS [building]
 			, G.[name] AS [wing]
 			, EM.[description]
-			, EM.[scheduledDate]
+			, EM.[startDateTime]
+			, EM.[endDateTime]
 			FROM [dbo].[ElevatorMaintenance] EM WITH (NOLOCK) 
 			INNER JOIN [dbo].[Elevator] E (NOLOCK) ON EM.[elevatorGuid] = E.[guid] AND E.[isDeleted] = 0
 			INNER JOIN [dbo].[Entity] G WITH (NOLOCK) ON EM.[entityGuid] = G.[guid] AND G.[isDeleted] = 0
@@ -69,9 +73,8 @@ BEGIN
 			AND EM.[companyGuid]= ISNULL(@companyGuid,EM.[companyGuid])
 			AND EM.[entityGuid]= ISNULL(@entityGuid,EM.[entityGuid])
 			AND EM.[elevatorGuid]= ISNULL(@guid,EM.[elevatorGuid])
-			AND EM.[status] = 'Scheduled'
-			AND CONVERT(DATE,[scheduledDate]) >= CONVERT(DATE,GETUTCDATE())
-			ORDER BY [scheduledDate] ASC
+			AND CONVERT(DATETIME,[startDateTime]) >= CONVERT(DATETIME,@currentDate)
+			ORDER BY [startDateTime] ASC
 
 			SET @count = @@ROWCOUNT
 

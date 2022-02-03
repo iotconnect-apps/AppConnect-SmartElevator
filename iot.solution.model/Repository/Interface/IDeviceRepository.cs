@@ -21,6 +21,6 @@ namespace iot.solution.model.Repository.Interface
         Entity.BaseResponse<int> ValidateKit(string kitCode);
         Entity.BaseResponse<List<Entity.HardwareKit>> ProvisionKit(Entity.ProvisionKitRequest request);
         Entity.BaseResponse<List<Entity.BuildingElevatorLookup>> GetDeviceLookupByEntityId(Guid buildingId);
-        Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId);
+        Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId, DateTime? currentDate = null, string timeZone = "");
     }
 }

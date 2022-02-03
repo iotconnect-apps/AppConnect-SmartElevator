@@ -58,9 +58,9 @@ namespace iot.solution.service.Implementation
                 var building = _entityRepository.FindBy(r => r.Guid == wing.ParentEntityGuid).FirstOrDefault();
                 elevator.Wing = wing.Name;
                 elevator.Building = building.Name;
-                var template = _lookupService.GetTemplate(false).FirstOrDefault();
+                var template = _lookupService.GetIotTemplateGuidByCode();
                 if (template != null)
-                    elevator.TemplateGuid = new Guid(template.Value);
+                    elevator.TemplateGuid = new Guid(template);
                 return elevator;
             }
             catch (Exception ex)
@@ -98,11 +98,7 @@ namespace iot.solution.service.Implementation
                 var dbDevice = Mapper.Configuration.Mapper.Map<Entity.Elevator, Model.Elevator>(request);
                 if (request.Guid == null || request.Guid == Guid.Empty)
                 {
-                    //provision kit with kitcode and unique id 
-                    var kitDeviceList = _deviceRepository.ProvisionKit(new ProvisionKitRequest { WingGuid = new Guid(), KitCode = request.KitCode.Trim(), UniqueId = request.UniqueId.Trim() });
-                    if (kitDeviceList != null && kitDeviceList.Data != null && kitDeviceList.Data.Any())
-                    {
-                        string templateGuid = _lookupService.GetIotTemplateGuidByName(kitDeviceList.Data.FirstOrDefault().KitTypeName);
+                        string templateGuid = _lookupService.GetIotTemplateGuidByCode();
                         if (!string.IsNullOrEmpty(templateGuid))
                         {
                             request.TemplateGuid = new Guid(templateGuid);
@@ -116,7 +112,7 @@ namespace iot.solution.service.Implementation
                                     dbDevice.Image = SaveElevatorImage(request.Guid.Value, request.ImageFile);
                                 }
                                 dbDevice.Guid = request.Guid.Value;
-                                dbDevice.IsProvisioned = acquireResult.status;
+                                dbDevice.IsProvisioned = true;
                                 dbDevice.IsActive = true;
                                 dbDevice.CompanyGuid = SolutionConfiguration.CompanyId;
                                 dbDevice.CreatedDate = DateTime.Now;
@@ -134,17 +130,6 @@ namespace iot.solution.service.Implementation
                                         actionStatus.Message = "Something Went Wrong!";
                                     }
                                 }
-                                else
-                                {
-                                    //Update companyid in hardware kit
-                                    var hardwareKit = _hardwareKitRepository.GetByUniqueId(t => t.KitCode == request.KitCode.Trim() && t.UniqueId == request.UniqueId.Trim());
-                                    if (hardwareKit != null)
-                                    {
-                                        hardwareKit.CompanyGuid = component.helper.SolutionConfiguration.CompanyId;
-                                        _hardwareKitRepository.Update(hardwareKit);
-                                    }
-                                }
-
                             }
                             else
                             {
@@ -158,53 +143,45 @@ namespace iot.solution.service.Implementation
                         {
                             actionStatus.Success = false;
                             actionStatus.Data = Guid.Empty;
-                            actionStatus.Message = "Unable To Locate Kit Type.";
+                            actionStatus.Message = "Template not found in IoTConnect";
                         }
                     }
                     else
                     {
-                        _logger.ErrorLog(new Exception($"Elevator KitCode or UniqueId is not valid,"), this.GetType().Name, MethodBase.GetCurrentMethod().Name);
-                        actionStatus.Data = Guid.Empty;
-                        actionStatus.Success = false;
-                        actionStatus.Message = "Elevator KitCode or UniqueId is not valid!";
-                    }
-                }
-                else
-                {
-                    var olddbDevice = _deviceRepository.GetByUniqueId(x => x.Guid.Equals(request.Guid));
-                    if (olddbDevice == null)
-                    {
-                        throw new NotFoundCustomException($"{CommonException.Name.NoRecordsFound} : Device");
-                    }
-                    var updateEntityResult = _iotConnectClient.Device.Update(request.Guid.ToString(), Mapper.Configuration.Mapper.Map<IOT.UpdateDeviceModel>(request)).Result;
-                    if (updateEntityResult != null && updateEntityResult.status)
-                    {
-                        dbDevice.CreatedDate = olddbDevice.CreatedDate;
-                        dbDevice.CreatedBy = olddbDevice.CreatedBy;
-                        dbDevice.UpdatedDate = DateTime.Now;
-                        dbDevice.UpdatedBy = SolutionConfiguration.CurrentUserId;
-                        dbDevice.CompanyGuid = SolutionConfiguration.CompanyId;
-                        dbDevice.TemplateGuid = olddbDevice.TemplateGuid;
-                        actionStatus = _deviceRepository.Manage(dbDevice, true);
-                        actionStatus.Data = (Guid)(actionStatus.Data);
-                        //actionStatus.Data = Mapper.Configuration.Mapper.Map<Model.Elevator, Entity.Elevator>(actionStatus.Data);
-                        if (!actionStatus.Success)
+                        var olddbDevice = _deviceRepository.GetByUniqueId(x => x.Guid.Equals(request.Guid));
+                        if (olddbDevice == null)
                         {
-                            _logger.ErrorLog(new Exception($"Elevator is not updated in solution database, Error: {actionStatus.Message}"), this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+                            throw new NotFoundCustomException($"{CommonException.Name.NoRecordsFound} : Device");
+                        }
+                        var updateEntityResult = _iotConnectClient.Device.Update(request.Guid.ToString(), Mapper.Configuration.Mapper.Map<IOT.UpdateDeviceModel>(request)).Result;
+                        if (updateEntityResult != null && updateEntityResult.status)
+                        {
+                            dbDevice.CreatedDate = olddbDevice.CreatedDate;
+                            dbDevice.CreatedBy = olddbDevice.CreatedBy;
+                            dbDevice.UpdatedDate = DateTime.Now;
+                            dbDevice.UpdatedBy = SolutionConfiguration.CurrentUserId;
+                            dbDevice.CompanyGuid = SolutionConfiguration.CompanyId;
+                            dbDevice.TemplateGuid = olddbDevice.TemplateGuid;
+                            actionStatus = _deviceRepository.Manage(dbDevice, true);
+                            actionStatus.Data = (Guid)(actionStatus.Data);
+                            //actionStatus.Data = Mapper.Configuration.Mapper.Map<Model.Elevator, Entity.Elevator>(actionStatus.Data);
+                            if (!actionStatus.Success)
+                            {
+                                _logger.ErrorLog(new Exception($"Elevator is not updated in solution database, Error: {actionStatus.Message}"), this.GetType().Name, MethodBase.GetCurrentMethod().Name);
 
+                                actionStatus.Success = false;
+                                actionStatus.Data = Guid.Empty;
+                                actionStatus.Message = "Something Went Wrong!";
+                            }
+                        }
+                        else
+                        {
+                            _logger.ErrorLog(new Exception($"Elevator is not added in iotconnect, Error: {updateEntityResult.message}"), this.GetType().Name, MethodBase.GetCurrentMethod().Name);
                             actionStatus.Success = false;
                             actionStatus.Data = Guid.Empty;
-                            actionStatus.Message = "Something Went Wrong!";
+                            actionStatus.Message = new UtilityHelper().IOTResultMessage(updateEntityResult.errorMessages);
                         }
                     }
-                    else
-                    {
-                        _logger.ErrorLog(new Exception($"Elevator is not added in iotconnect, Error: {updateEntityResult.message}"), this.GetType().Name, MethodBase.GetCurrentMethod().Name);
-                        actionStatus.Success = false;
-                        actionStatus.Data = Guid.Empty;
-                        actionStatus.Message = new UtilityHelper().IOTResultMessage(updateEntityResult.errorMessages);
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -395,11 +372,11 @@ namespace iot.solution.service.Implementation
                 return new Entity.SearchResult<List<Entity.Elevator>>();
             }
         }
-        public Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId)
+        public Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId, DateTime? currentDate = null, string timeZone = "")
         {
             try
             {
-                var result = _deviceRepository.GetDeviceDetail(deviceId);
+                var result = _deviceRepository.GetDeviceDetail(deviceId,currentDate,timeZone);
                 return result;
             }
             catch (Exception ex)
@@ -457,7 +434,7 @@ namespace iot.solution.service.Implementation
                 if (repoResult != null && repoResult.Data != null && repoResult.Data.Any())
                 {
                     Entity.HardwareKit hardwareKit = repoResult.Data.FirstOrDefault();
-                    string templateGuid = _lookupService.GetIotTemplateGuidByName(hardwareKit.KitTypeName);
+                    string templateGuid = _lookupService.GetIotTemplateGuidByCode();
 
                     IOT.AddDeviceModel iotDeviceDetail = new IOT.AddDeviceModel()
                     {
@@ -546,6 +523,25 @@ namespace iot.solution.service.Implementation
                 if (deviceCounterResult != null && deviceCounterResult.status)
                 {
                     result.Data = Mapper.Configuration.Mapper.Map<Entity.DeviceCounterResult>(deviceCounterResult.data.FirstOrDefault());
+
+                    var device = _iotConnectClient.Device.AllDevice(new IoTConnect.Model.AllDeviceModel { }).Result;
+                    if (device != null && device.Data != null && device.Data.Any())
+                    {
+                        var resultIoT = (from r in device.Data
+                                         join l in _deviceRepository.GetAll().Where(t => t.CompanyGuid.Equals(SolutionConfiguration.CompanyId) && !t.IsDeleted).ToList()
+                   on r.Guid.ToUpper() equals l.Guid.ToString().ToUpper()
+                                         select new
+                                         {
+                                             r.IsActive,
+                                             r.IsConnected,
+                                             r.Guid
+                                         }).ToList();
+                        result.Data.connected = resultIoT.Where(t => t.IsConnected).Count();
+                        result.Data.disConnected = resultIoT.Where(t => !t.IsConnected).Count();
+                        result.Data.active = resultIoT.Where(t => t.IsActive).Count();
+                        result.Data.inActive = resultIoT.Where(t => !t.IsActive).Count();
+                        result.Data.total = resultIoT.Count();
+                    }
                 }
             }
             catch (Exception ex)
@@ -565,6 +561,7 @@ namespace iot.solution.service.Implementation
                 {
                     result.Data = deviceCounterResult.data.Select(d => Mapper.Configuration.Mapper.Map<Entity.DeviceTelemetryDataResult>(d)).ToList();
                 }
+
             }
             catch (Exception ex)
             {
@@ -583,6 +580,24 @@ namespace iot.solution.service.Implementation
                 if (deviceCounterResult != null && deviceCounterResult.status)
                 {
                     result.Data = Mapper.Configuration.Mapper.Map<Entity.DeviceCounterByEntityResult>(deviceCounterResult.data.FirstOrDefault());
+                    var device = _iotConnectClient.Device.AllDevice(new IoTConnect.Model.AllDeviceModel { entityGuid = entityGuid.ToString()}).Result;
+                    if (device != null && device.Data != null && device.Data.Any())
+                    {
+                        var resultIoT = (from r in device.Data
+                                         join l in _deviceRepository.GetAll().Where(t => t.CompanyGuid.Equals(SolutionConfiguration.CompanyId) && !t.IsDeleted).ToList()
+                   on r.Guid.ToUpper() equals l.Guid.ToString().ToUpper()
+                                         select new
+                                         {
+                                             r.IsActive,
+                                             r.IsConnected,
+                                             r.Guid
+                                         }).ToList();
+                        result.Data.counters.connected = resultIoT.Where(t => t.IsConnected).Count();
+                        result.Data.counters.disConnected = resultIoT.Where(t => !t.IsConnected).Count();
+                        result.Data.counters.active = resultIoT.Where(t => t.IsActive).Count();
+                        result.Data.counters.inActive = resultIoT.Where(t => !t.IsActive).Count();
+                        result.Data.counters.total = resultIoT.Count();
+                    }
                 }
                 else
                 {

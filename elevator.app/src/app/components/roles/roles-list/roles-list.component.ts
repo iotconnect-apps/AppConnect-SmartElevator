@@ -14,6 +14,8 @@ import { AppConstant, DeleteAlertDataModel } from "../../../app.constants";
   styleUrls: ['./roles-list.component.css']
 })
 export class RolesListComponent implements OnInit {
+
+  currentUser = JSON.parse(localStorage.getItem("currentUser"));
   changeStatusRoleName: any;
   changeStatusRoleStatus: any;
   moduleName = "Roles";
@@ -46,13 +48,16 @@ export class RolesListComponent implements OnInit {
     this.getRolesList();
   }
 
+  /**
+	* For Goto add role section
+	**/
   clickAdd() {
     this.router.navigate(['/roles/add']);
   }
 
-  log(val) { console.log(val); }
-
-
+  /**
+	* For set order role list
+	**/
   setOrder(sort: any) {
     console.log(sort);
     if (!sort.active || sort.direction === '') {
@@ -62,6 +67,9 @@ export class RolesListComponent implements OnInit {
     this.getRolesList();
   }
 
+  /**
+	* For open delete role confirmation model
+	**/
   deleteModel(userModel: any) {
     this.deleteAlertDataModel = {
       title: "Delete Role",
@@ -82,6 +90,9 @@ export class RolesListComponent implements OnInit {
     });
   }
 
+  /**
+	* For Manage role status
+	**/
   activeInactiveRole(roleId: string, isActive: boolean, name: string) {
     var status = isActive == false ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
     var mapObj = {
@@ -112,25 +123,32 @@ export class RolesListComponent implements OnInit {
 
   }
 
+  /**
+	* For change role status
+	**/
   changeRoleStatus(roleId, isActive) {
 	
 		this.spinner.show();
 		this.rolesService.changeStatus(roleId, isActive).subscribe(response => {
 			this.spinner.hide();
 			if (response.isSuccess === true) {
-				this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "Role")));
+        this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "Role")},"success");
 				this.getRolesList();
 
 			}
 			else {
-				this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 			}
 			
 		}, error => {
-			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+      this.spinner.hide();
+      this._notificationService.handleResponse(error,"error");
 		});
-	}
+  }
+  
+  /**
+	* For manage paggination
+	**/
   ChangePaginationAsPageChange(pagechangeresponse) {
     this.searchParameters.pageSize = pagechangeresponse.pageSize;
     this.searchParameters.pageNumber = pagechangeresponse.pageIndex;
@@ -138,6 +156,9 @@ export class RolesListComponent implements OnInit {
     this.getRolesList();
   }
 
+  /**
+	* For search text call back
+  **/
   searchTextCallback(filterText) {
     this.searchParameters.searchText = filterText;
     this.searchParameters.pageNumber = 0;
@@ -145,6 +166,9 @@ export class RolesListComponent implements OnInit {
     this.getRolesList();
   }
 
+  /**
+	* For Get Role List
+	**/
   getRolesList() {
     this.spinner.show();
     this.rolesService.getRoles(this.searchParameters).subscribe(response => {
@@ -156,51 +180,58 @@ export class RolesListComponent implements OnInit {
         this.rolesList = response.data.items;
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.rolesList = [];
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For update role status
+	**/
   updateRoleStatus(roleId, isActive) {
 
     this.spinner.show();
     this.rolesService.changeStatus(roleId, isActive).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "Role")));
+        this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "Role")},"success");
         this.getRolesList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  
+  /**
+	* For open delete role 
+	**/
   deleteRole(roleId) {
     this.spinner.show();
     this.rolesService.deleteRole(roleId).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Role")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Role")},"success");
         this.getRolesList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 

@@ -12,7 +12,7 @@
 
         public string TotalConnectedElevator { get; set; }
 
-        public string TotalMaintenance { get; set; }
+        public string TotalUnderMaintenanceCount { get; set; }
         public string TotalAlerts { get; set; }
 
     }

@@ -31,13 +31,6 @@ export class LeftMenuComponent implements OnInit {
 					applylink: true
 				},
 				{
-					name: 'Hardware Kits',
-					link: '/admin/hardwarekits',
-					li_color: '',
-					icon: 'icon-devices',
-					applylink: true
-				},
-				{
 					name: 'Users',
 					link: '/admin/users',
 					li_color: '',
@@ -51,15 +44,6 @@ export class LeftMenuComponent implements OnInit {
 					icon: 'icon-subscribers',
 					applylink: true
 				}
-				// ,
-				// {
-				// 	name: 'Notification',
-				// 	link: '/admin/notification',
-				// 	li_color: '',
-				// 	icon: 'icon-notification',
-				// 	applylink: true
-				// },
-
 			];
 		} else {
 			this.menuList = [
@@ -112,47 +96,28 @@ export class LeftMenuComponent implements OnInit {
 					icon: 'icon-alerts',
 					applylink: true
 				},
-				// {
-				//   name: "Hardware Kit",
-				// 	link: "/gateways",
-				// 	li_color: '',
-				// 	icon: 'icon-devices',
-				// 	applylink: true
-				// },
-				// {
-				// 	name: 'Notification',
-				// 	link: '/notification',
-				// 	li_color: '',
-				// 	icon: 'icon-notification',
-				// 	applylink: true
-				// },
-				// {
-				// 	name: "Devices",
-				// 	link: "/devices",
-				// 	li_color: '',
-				// 	icon: 'icon-devices',
-				// 	applylink: true
-				// },
-				// {
-				// 	name: "Crops",
-				// 	link: "/crops",
-				// 	li_color: '',
-				// 	icon: 'icon-simanagement',
-				// 	applylink: true
-				// },
 			];
 		}
 
 	}
 
+	/**
+    * For manage nav url
+	**/
 	manageNavigateUrl(url) {
 		this.router.navigate([url]);
 	}
 
+	/**
+    * For show child menu
+	**/
 	showSubMenu(menu) {
 		menu.showSunMenu = !menu.showSunMenu;
 	}
 
+	/**
+    * For handle menu click
+	**/
 	onClickMenu(i) {
 		this.currentUrl = false;
 		this.selectedMenu = i;

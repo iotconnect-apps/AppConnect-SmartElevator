@@ -1,0 +1,69 @@
+<div *ngIf="buildings.length > 0" class="tab-widget-wrapper">
+	<mat-tab-group (selectedTabChange)="onTabChange($event)">
+		<mat-tab *ngFor="let building of buildings;index as i;" label="{{building['text']}}">
+			<div class="tab-content-inner">
+				<div class="show-data-radio">
+					<div class="radio-group-box">
+						<mat-radio-group (change)="changeGraphFilter(building,$event)" aria-label="Select an option">
+							<mat-radio-button [checked]="type == 'd'?'true':'false'" value="Day">Day</mat-radio-button>
+							<mat-radio-button [checked]="type == 'w'?'true':'false'" value="Week">Week</mat-radio-button>
+							<mat-radio-button [checked]="type == 'm'?'true':'false'" value="Month">Month</mat-radio-button>
+						</mat-radio-group>
+					</div>
+					<div class="tab-link-bar">
+						<a [routerLink]="['/buildings']" href="javascript:;">View All</a>
+					</div>
+				</div>
+				<div class="tab-chart-container">
+					<div class="card-w-bg">
+						<div class="card-inner-col">
+							<div class="card-inner-content">
+								<p>Elevators</p>
+								<h4>{{buildingsDetail['totalElevator']}}</h4>
+							</div>
+						</div>
+						<div class="card-inner-col">
+							<div class="card-inner-content">
+								<p>Total Operating Hours</p>
+								<h4>{{buildingsDetail['totalOperatingHours']}}</h4>
+							</div>
+						</div>
+						<div class="card-inner-col">
+							<div class="card-inner-content">
+								<p>Total Trips</p>
+								<h4>{{buildingsDetail['totalTrips']}}</h4>
+							</div>
+						</div>
+						<div class="card-inner-col">
+							<div class="card-inner-content">
+								<p>Energy Consumption</p>
+								<h4>{{buildingsDetail['totalEnergy']}}</h4>
+							</div>
+						</div>
+					</div>
+					<div class="drag-body dashboard-widget">
+						<div class="panel-heading" [ngStyle]="{'background':widget?.widgetProperty?.background}">
+							<h5 class="panel-title"
+							[ngStyle]="{'font-size':widget?.widgetProperty?.fontSize+'px',
+							'font-family':widget?.widgetProperty?.fontFamily,
+							'color':widget?.widgetProperty?.fontColor}">{{widget?.widgetProperty?.title}} </h5>
+						</div>
+						<mat-card class="">
+							<div class="">
+								<google-chart *ngIf="comboChart.dataTable.length > 1" [data]="comboChart" #cchart></google-chart>
+								<div [ngStyle]="{'height':(widget.properties.h / 2)+'px'}" class="centerclass soil-nutritions" *ngIf="comboChart.dataTable.length < 2">
+									No Data found
+								</div>
+							</div>
+						</mat-card>
+					</div>
+				</div>
+			</div>
+		</mat-tab>
+	</mat-tab-group>
+</div>
+<div *ngIf="buildings.length == 0" class="tab-widget-wrapper h-100">
+	<div class="centerclass text-center d-flex align-items-center justify-content-center">No buildings found</div>
+</div>
+
+

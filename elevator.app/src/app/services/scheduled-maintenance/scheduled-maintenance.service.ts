@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
 import { CookieService } from 'ngx-cookie-service'
 import { ApiConfigService, NotificationService } from 'app/services';
+import * as moment from 'moment'
 @Injectable({
   providedIn: 'root'
 })
@@ -69,7 +70,12 @@ export class ScheduledMaintenanceService {
    */
   getScheduledMaintenanceDetails(guid) {
 
-    return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/elevatormaintenance/' + guid).map(response => {
+    return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/elevatormaintenance/' + guid,{
+      params:{ 
+        currentDate: moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        timeZone: moment().utcOffset().toString()
+    }
+    }).map(response => {
       return response;
     });
   }
@@ -81,13 +87,19 @@ export class ScheduledMaintenanceService {
         'pageNo': parameters.pageNumber + 1,
         'pageSize': parameters.pageSize,
         'searchText': parameters.searchText,
-        'orderBy': parameters.sortBy
+        'orderBy': parameters.sortBy,
+        'currentDate': moment(new Date()).format('YYYY-MM-DDTHH:mm:ss'),
+        'timeZone': moment().utcOffset().toString()
       }
     };
 
     return this.httpClient.get<any>(this.apiServer.baseUrl + 'api/elevatormaintenance/search', reqParameter).map(response => {
       return response;
     });
+  }
+
+  getTimeZone() {
+    return /\((.*)\)/.exec(new Date().toString())[1];
   }
 
   deleteMaintenance(guid) {

@@ -155,6 +155,21 @@ namespace component.helper
             }
         }
 
+        public HttpResponseMessage PUT<T>(string url, T model, string token)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                if (!string.IsNullOrWhiteSpace(token))
+                {
+                    httpClient.SetBearerToken(token);
+                }
+
+                var serializedContent = JsonConvert.SerializeObject(model);
+                var httpContent = new StringContent(serializedContent, Encoding.UTF8, _mediaType);
+                return httpClient.PutAsync(url, httpContent).Result;
+            }
+        }
+
         /// <summary>
         /// Execute Get Call
         /// </summary>

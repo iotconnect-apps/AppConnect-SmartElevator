@@ -5,7 +5,7 @@ import { MatDialog, MatPaginator, MatSort, MatTableDataSource } from '@angular/m
 import { DeleteDialogComponent } from '../../../../components/common/delete-dialog/delete-dialog.component';
 import { tap } from 'rxjs/operators';
 import { AppConstant, DeleteAlertDataModel } from "../../../../app.constants";
-import { Notification, NotificationService, UsersService } from 'app/services';
+import { Notification, NotificationService, UserService } from 'app/services';
 import { empty } from 'rxjs';
 
 @Component({
@@ -42,25 +42,34 @@ export class AdminUserListComponent implements OnInit {
     public dialog: MatDialog,
     private spinner: NgxSpinnerService,
     private router: Router,
-    private userService: UsersService,
+    private userService: UserService,
     public _appConstant: AppConstant,
     private _notificationService: NotificationService
   ) { }
 
   ngOnInit() {
     this.getUserList();
-
   }
 
+  /**
+  * For manage user data with filter 
+  **/
   applyFilter(filterValue: string) {
     filterValue = filterValue.trim(); // Remove whitespace
     filterValue = filterValue.toLowerCase(); // Datasource defaults to lowercase matches
     this.dataSource.filter = filterValue;
   }
+
+  /**
+  * For Goto add user section 
+  **/
   clickAdd() {
     this.router.navigate(['admin/users/add']);
   }
 
+  /**
+  * For Set user list order 
+  **/
   setOrder(sort: any) {
     if (!sort.active || sort.direction === '') {
       return;
@@ -69,8 +78,9 @@ export class AdminUserListComponent implements OnInit {
     this.getUserList();
   }
 
-  log(obj) {
-  }
+  /**
+  * For Manage Paggination  
+  **/
   onPageSizeChangeCallback(pageSize) {
     this.searchParameters.pageSize = pageSize;
     this.searchParameters.pageNumber = 1;
@@ -78,6 +88,9 @@ export class AdminUserListComponent implements OnInit {
     this.getUserList();
   }
 
+  /**
+  * For Change Paggination value  
+  **/
   ChangePaginationAsPageChange(pagechangeresponse) {
     this.searchParameters.pageNumber = pagechangeresponse.pageIndex;
     this.searchParameters.pageSize = pagechangeresponse.pageSize;
@@ -85,6 +98,9 @@ export class AdminUserListComponent implements OnInit {
     this.getUserList();
   }
 
+  /**
+  * For Search Call Back  
+  **/
   searchTextCallback(filterText) {
     this.searchParameters.searchText = filterText;
     this.searchParameters.pageNumber = 0;
@@ -92,6 +108,10 @@ export class AdminUserListComponent implements OnInit {
     this.isSearch = true;
   }
 
+
+  /**
+  * For Get User List  
+  **/
   getUserList() {
     this.spinner.show();
     this.userService.getAdminUserlist(this.searchParameters).subscribe(response => {
@@ -101,14 +121,13 @@ export class AdminUserListComponent implements OnInit {
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
-  onKey(filterValue: string) {
-    this.applyFilter(filterValue);
-  }
-
+  /**
+  * For Open delete confirmation model  
+  **/
   deleteModel(userModel: any) {
     this.deleteAlertDataModel = {
       title: "Delete User",
@@ -129,25 +148,32 @@ export class AdminUserListComponent implements OnInit {
     });
   }
 
+  /**
+  * For delete user by id  
+  **/
   deleteuser(guid) {
     this.spinner.show();
     this.userService.deleteadminUser(guid).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "User")));
+        this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "User")},"success");
         this.getUserList();
 
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
+
     });
   }
 
+  /**
+  * For Manage Status (Active / Inactive)
+  **/
   activeInactiveuser(id: string, isActive: boolean, fname: string, lname: string) {
     var status = isActive == false ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
     var mapObj = {
@@ -177,23 +203,25 @@ export class AdminUserListComponent implements OnInit {
     });
 
   }
-  changeUserStatus(id, isActive) {
 
+  /**
+  * For Manage usercStatus
+  **/
+  changeUserStatus(id, isActive) {
     this.spinner.show();
     this.userService.adminchangeStatus(id, isActive).subscribe(response => {
       this.spinner.hide();
       if (response.isSuccess === true) {
-        this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "User")));
+        this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "User")},"success");
         this.getUserList();
-
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
 
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 }

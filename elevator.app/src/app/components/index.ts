@@ -30,6 +30,7 @@ export { PaymentComponent } from './subscribe/payment/payment.component';
 export { PurchasePlanComponent } from './subscribe/purchase-plan/purchase-plan.component';
 // export { SitelayoutComponent } from './sitelayout/sitelayout.component';
 //export { BreadcrumbComponent } from './breadcrumb/breadcrumb.component';
+export {CallbackComponent } from './callback/callback.component';
 export { BuildingListComponent } from './building/building-list/building-list.component';
 export { BuildingAddComponent } from './building/building-add/building-add.component';
 export { BuildingDetailsComponent } from './building/building-details/building-details.component';
@@ -53,3 +54,18 @@ export { AdminNotificationAddComponent } from './admin/notification/admin-notifi
 export { ElevatorListComponent } from './elevator/elevator-list/elevator-list.component';
 export { ElevatorAddComponent } from './elevator/elevator-add/elevator-add.component';
 export { AlertsComponent } from './alerts/alerts.component';
+
+/*Dynamic Dashboard Start*/
+export { DynamicDashboardComponent } from './dynamic-dashboard/dynamic-dashboard/dynamic-dashboard.component';
+export { WidgetCounterAComponent } from './dynamic-dashboard/child-components/widget-counter-a/widget-counter-a.component';
+export { WidgetCounterBComponent } from './dynamic-dashboard/child-components/widget-counter-b/widget-counter-b.component';
+export { WidgetCounterCComponent } from './dynamic-dashboard/child-components/widget-counter-c/widget-counter-c.component';
+export { WidgetCounterDComponent } from './dynamic-dashboard/child-components/widget-counter-d/widget-counter-d.component';
+export { WidgetCounterEComponent } from './dynamic-dashboard/child-components/widget-counter-e/widget-counter-e.component';
+export { WidgetCounterFComponent } from './dynamic-dashboard/child-components/widget-counter-f/widget-counter-f.component';
+export { WidgetAlertAComponent } from './dynamic-dashboard/child-components/widget-alert-a/widget-alert-a.component';
+export { WidgetAlertBComponent } from './dynamic-dashboard/child-components/widget-alert-b/widget-alert-b.component';
+export { WidgetChartAComponent } from './dynamic-dashboard/child-components/widget-chart-a/widget-chart-a.component';
+export { WidgetChartBComponent } from './dynamic-dashboard/child-components/widget-chart-b/widget-chart-b.component';
+export { SizeDetectorComponent } from './dynamic-dashboard/size-detector/size-detector.component';
+/*Dynamic Dashboard End*/

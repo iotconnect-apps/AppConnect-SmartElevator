@@ -132,7 +132,7 @@ namespace iot.solution.model.Repository.Implementation
             }
             return result;
         }
-        public Entity.BaseResponse<List<Entity.BuildingOverviewResponse>> GetBuildingOverview(Guid buildingId, string frequency)
+        public Entity.BaseResponse<List<Entity.BuildingOverviewResponse>> GetBuildingOverview(Guid buildingId, string frequency, DateTime currentDate, string timeZone)
         {
             Entity.BaseResponse <List<Entity.BuildingOverviewResponse>> result = new Entity.BaseResponse<List<Entity.BuildingOverviewResponse>>();
             try
@@ -140,9 +140,15 @@ namespace iot.solution.model.Repository.Implementation
                 logger.InfoLog(Constants.ACTION_ENTRY, "EntityRepository.GetBuildingOverview");
                 using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
                 {
+                    DateTime dateValue;
+                    if (DateTime.TryParse(currentDate.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(timeZone));
+                    }
                     List<DbParameter> parameters = sqlDataAccess.CreateParams(SolutionConfiguration.CurrentUserId, SolutionConfiguration.Version);
                     parameters.Add(sqlDataAccess.CreateParameter("guid", buildingId, DbType.Guid, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("frequency", frequency, DbType.String, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("currentDate", dateValue, DbType.DateTime, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("syncDate", DateTime.UtcNow, DbType.DateTime, ParameterDirection.Output));
                     DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[BuildingStatistics_Get]", CommandType.StoredProcedure, null), parameters.ToArray());
                     result.Data = DataUtils.DataReaderToList<Entity.BuildingOverviewResponse>(dbDataReader, null);

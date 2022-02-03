@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Notification, NotificationService, ElevatorService, DashboardService } from 'app/services';
+import { Component,  OnInit} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router'
 import { NgxSpinnerService } from 'ngx-spinner'
 import 'chartjs-plugin-streaming';
@@ -10,6 +9,7 @@ import { Observable, forkJoin } from 'rxjs';
 import { Location } from '@angular/common';
 import * as moment from 'moment-timezone'
 import * as _ from 'lodash'
+import { DashboardService, ElevatorService, NotificationService } from '../../../services';
 @Component({
   selector: 'app-elevator-details',
   templateUrl: './elevator-details.component.html',
@@ -69,7 +69,7 @@ export class ElevatorDetailsComponent implements OnInit {
         },
         realtime: {
           duration: 90000,
-          refresh: 7000,
+          refresh: 6000,
           delay: 2000,
           //onRefresh: '',
 
@@ -140,7 +140,7 @@ export class ElevatorDetailsComponent implements OnInit {
     averageTemprature: 0,
     averageSpeed: 0,
     averageVibrationLevel: 0,
-    maintenanceSchescheduled: 0
+    maintenanceScheduled: 0
   }
   labelname: any;
   maintenanceList = [];
@@ -174,31 +174,42 @@ export class ElevatorDetailsComponent implements OnInit {
     //this.onTabChange()
   }
 
+  /**
+	* For convert UTC date to local time zone date
+	**/
   getLocalDate(lDate) {
     var utcDate = moment.utc(lDate, 'YYYY-MM-DDTHH:mm:ss.SSS');
     // Get the local version of that date
     var localDate = moment(utcDate).local();
     let res = moment(localDate).format('MMM DD, YYYY hh:mm:ss A');
     return res;
-
   }
 
+  /**
+	* For get upcoming maintenance list
+	**/
   getMaintenanceList(elevatorGuid) {
     //this.spinner.show();
     this.dashboardService.getUpcomingMaintenance('', elevatorGuid).subscribe(response => {
       //this.spinner.hide();
       if (response.isSuccess === true) {
         this.maintenanceList = response.data;
+        console.log(this.maintenanceList);
+        
       }
       else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
       //this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
+
+  /**
+	* For get alert list
+	**/
   getAlertList(elevatorGuid) {
     let parameters = {
       pageNumber: 0,
@@ -217,15 +228,18 @@ export class ElevatorDetailsComponent implements OnInit {
       }
       else {
         this.alerts = [];
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
 
       }
     }, error => {
       this.alerts = [];
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
+  /**
+	* For get elevator detail
+	**/
   getelevatorDetails(elevetorGuid) {
     this.spinner.show();
     this.elevatorService.getelevatorDetails(elevetorGuid).subscribe(response => {
@@ -235,11 +249,13 @@ export class ElevatorDetailsComponent implements OnInit {
         this.nomediaUrl = response.data.image
         this.dataobj = response.data
         this.getgenraterTelemetryData(response.data.templateGuid);
-        //this.userObject = response.data;
-        //this.fileUrl = this.deviceObject['image'];
       }
     });
   }
+
+  /**
+	* For get Elevator Count Details
+	**/
   getelevatorCountDetails(elevetorGuid) {
     this.spinner.show();
     this.elevatorService.getelevatorcountDetails(elevetorGuid).subscribe(response => {
@@ -259,7 +275,7 @@ export class ElevatorDetailsComponent implements OnInit {
           averageTemprature: (response.data['averageTemperature']) ? response.data['averageTemperature'] : 0,
           averageSpeed: (response.data['averageSpeed']) ? response.data['averageSpeed'] : 0,
           averageVibrationLevel: (response.data['averageVibration']) ? response.data['averageVibration'] : 0,
-          maintenanceSchescheduled: msVal
+          maintenanceScheduled: msVal
         }
       }
     });
@@ -313,15 +329,14 @@ export class ElevatorDetailsComponent implements OnInit {
 
   }
 
-
   // For get TelemetryData
   getgenraterTelemetryData(templateGuid) {
+    debugger;
     this.spinner.show();
     this.elevatorService.getelevatorTelemetryData(templateGuid).subscribe(response => {
       if (response.isSuccess === true) {
         this.spinner.hide();
         this.sensdata = response.data
-        //this.onTabChange(response.data[0].text)
         let temp = [];
         response.data.forEach((element, i) => {
           var colorNames = Object.keys(this.chartColors);
@@ -339,32 +354,12 @@ export class ElevatorDetailsComponent implements OnInit {
         });
         this.datasets = temp;
         this.getStompConfig();
-        /*	let temp = [];
-          response.data.forEach((element, i) => {
-            var colorNames = Object.keys(this.chartColors);
-            var colorName = colorNames[i % colorNames.length];
-            var newColor = this.chartColors[colorName];
-            var graphLabel = {
-              label: element.text,
-              backgroundColor: 'rgb(153, 102, 255)',
-              borderColor: newColor,
-              fill: false,
-              cubicInterpolationMode: 'monotone',
-              data: []
-            }
-            temp.push(graphLabel);
-          });
-          // response.data.forEach(element, i) => {
-   
-          // });
-          this.datasets = temp;
-          this.getStompConfig();*/
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
   onTabChange(tab) {
@@ -382,10 +377,9 @@ export class ElevatorDetailsComponent implements OnInit {
             },
             realtime: {
               duration: 90000,
-              refresh: 1000,
+              refresh: 6000,
               delay: 2000,
               onRefresh: function (chart: any) {
-                //if (obj.data.msgType !== 'device') {
                 chart.data.datasets.forEach(function (dataset: any) {
                   if (dataset.label == datalabel) {
                     dataset.hidden = false
@@ -393,22 +387,13 @@ export class ElevatorDetailsComponent implements OnInit {
                     dataset.hidden = true
                   }
                 });
-                // }
-
-
-
-
               },
-
-              // delay: 2000
-
             }
 
           }],
           yAxes: [{
             scaleLabel: {
               display: true,
-              //labelString: 'value'
             }
           }]
 
@@ -423,24 +408,7 @@ export class ElevatorDetailsComponent implements OnInit {
         }
 
       }
-      //this.getStompConfig();
-      //console.log("tabsss",tab.tab.textLabel)
-      /*let temp = [];
-      var colorNames = Object.keys(this.chartColors);
-      var colorName = colorNames[tab.index % colorNames.length];
-      var newColor = this.chartColors[colorName];
-      var graphLabel = {
-        label: tab.tab.textLabel,
-        backgroundColor: 'rgb(153, 102, 255)',
-        borderColor: newColor,
-        fill: false,
-        cubicInterpolationMode: 'monotone',
-        data: []
-      }
-      temp.push(graphLabel);
-      this.datasets = temp;*/
     }
-
 
   }
 
@@ -474,7 +442,12 @@ export class ElevatorDetailsComponent implements OnInit {
   }
   public on_next = (message: Message) => {
     let obj: any = JSON.parse(message.body);
-    let reporting_data = obj.data.data.reporting
+
+    for (let key in obj.data.data.reporting) {
+      obj.data.data.reporting[key] = (obj.data.data.reporting[key].replace(',', ''));
+    }
+    let reporting_data = obj.data.data.reporting;
+
     this.isConnected = true;
     let dates = obj.data.data.time;
     //var datalabel = this.labelname;
@@ -487,21 +460,17 @@ export class ElevatorDetailsComponent implements OnInit {
           xAxes: [{
             type: 'realtime',
             time: {
-              stepSize: 10
+              stepSize: 5
             },
             realtime: {
               duration: 90000,
-              refresh: 7000,
+              refresh: 6000,
               delay: 2000,
               onRefresh: function (chart: any) {
                 if (chart.height) {
                   if (obj.data.msgType !== 'device') {
                     chart.data.datasets.forEach(function (dataset: any) {
-                      /*if (dataset.label === datalabel) {
-                        dataset.hidden = false
-                      } else{
-                        dataset.hidden = true
-                      }*/
+                     
                       dataset.data.push({
 
                         x: now,
@@ -515,11 +484,7 @@ export class ElevatorDetailsComponent implements OnInit {
 
                 }
 
-
-
               },
-
-              // delay: 2000
 
             }
 
@@ -542,21 +507,45 @@ export class ElevatorDetailsComponent implements OnInit {
         }
 
       }
+    }else if (obj.data.msgType === 'simulator') {
+      if (obj.data.data.status === 'off') {
+        this.options = {
+          type: 'line',
+          scales: {
+            xAxes: [{
+              type: 'realtime',
+              time: {
+                stepSize: 10
+              },
+              realtime: {
+                duration: 90000,
+                refresh: 1000,
+                delay: 2000,
+      
+              }
+            }],
+            yAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'value'
+              }
+            }]
+          },
+          tooltips: {
+            mode: 'nearest',
+            intersect: false
+          },
+          hover: {
+            mode: 'nearest',
+            intersect: false
+          }
+        };
+      } else {
+        
+      }
     }
 
     obj.data.data.time = now;
-    /*var colorNames = Object.keys(this.chartColors);
-    var colorName = colorNames[this.datasets.length % colorNames.length];
-    var newColor = this.chartColors[colorName];
-    var test = {
-      label: 'Dataset 3 (cubic interpolation)',
-      backgroundColor: 'rgb(153, 102, 255)',
-      borderColor: newColor,
-      fill: false,
-      cubicInterpolationMode: 'monotone',
-      data: []
-    }*/
-
-
+   
   }
 }

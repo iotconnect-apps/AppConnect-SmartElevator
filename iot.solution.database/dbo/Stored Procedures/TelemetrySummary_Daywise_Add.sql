@@ -32,7 +32,7 @@ BEGIN
 		SELECT NEWID(), [guid], [Date], [localName], 0, 0, 0, ValueCount, 0
 		FROM (
 		
-		SELECT D.[guid],KA.[code] AS localName, CONVERT(DATE,A.createdDate) [Date], AVG(ROUND(CONVERT(DECIMAL(18,7),attributeValue),2)) ValueCount
+		SELECT D.[guid],KA.[code] AS localName, CONVERT(DATE,A.createdDate) [Date], AVG(ROUND(CONVERT(DECIMAL(18,7),REPLACE(attributeValue,',','')),2)) ValueCount
 		FROM [IOTConnect].[AttributeValue] A
 		INNER JOIN [dbo].[KitTypeAttribute] KA ON A.[localName] = KA.[localName]
 		INNER JOIN [dbo].[Elevator] D ON A.[uniqueId] = D.[uniqueId] AND D.[isDeleted] = 0
@@ -54,7 +54,7 @@ BEGIN
 		SELECT NEWID(), [guid], [Date], [localName], 0, 0, 0, 0, ValueCount
 		FROM (
 		
-		SELECT D.[guid],KA.[code] AS localName, CONVERT(DATE,A.createdDate) [DATE], SUM(ROUND(CONVERT(DECIMAL(18,7),attributeValue),2)) ValueCount
+		SELECT D.[guid],KA.[code] AS localName, CONVERT(DATE,A.createdDate) [DATE], SUM(ROUND(CONVERT(DECIMAL(18,7),REPLACE(attributeValue,',','')),2)) ValueCount
 		FROM [IOTConnect].[AttributeValue] A
 		INNER JOIN [dbo].[KitTypeAttribute] KA ON A.[localName] = KA.[localName]
 		INNER JOIN [dbo].[Elevator] D ON A.[uniqueId] = D.[uniqueId] AND D.[isDeleted] = 0

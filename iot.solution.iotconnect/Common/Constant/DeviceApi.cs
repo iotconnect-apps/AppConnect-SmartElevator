@@ -28,5 +28,6 @@ namespace IoTConnect.Common.Constant
 
         internal const string TelemetryData = "api/v{0}/Telemetry/device/{1}";
         internal const string ConnectionStatus = "api/v{0}/Device/connection-status?uniqueId={1}";
+        internal const string GetStompConfiguartionData = "api/v{0}/Telemetry/stomp-reader";
     }
 }

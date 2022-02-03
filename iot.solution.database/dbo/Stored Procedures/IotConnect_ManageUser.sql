@@ -30,7 +30,8 @@ rollback
 CREATE PROCEDURE [dbo].[IotConnect_ManageUser]
 (              
 	 @companyGuid		UNIQUEIDENTIFIER 
-	,@action			VARCHAR(20)		
+	,@action			VARCHAR(20)
+	,@renewalDate DATETIME = NULL
 	,@enableDebugInfo	CHAR(1)			= '0'
 	,@UserXml			XML 
 )AS              
@@ -85,9 +86,14 @@ BEGIN
 	FROM @UserXml.nodes('/items/item') a(b)
 
 		BEGIN TRAN
-
+		--If not exists (select 1 from dbo.[User] where companyGuid=@companyGuid) and @action='update'
+		--	begin
+		--		set @action = 'insert'
+		--	end
 		IF(@action = 'insert') 
 		BEGIN
+			If not exists (select 1 from dbo.[User] where companyGuid=@companyGuid)
+			begin
 			;WITH ExistingUser AS
 			(
 				SELECT [guid]
@@ -95,10 +101,11 @@ BEGIN
 			)
 
 			INSERT INTO dbo.[User]
-				([guid],[email], [firstName], [lastName], [entityGuid], [companyGuid], [isActive], [isDeleted],[createdDate],[timeZoneGuid], [contactNo], [roleGuid])
-			SELECT DISTINCT [guid], [userId], firstName, lastName, entityGuid, @companyGuid, isActive, isDeleted, GETUTCDATE(), [timeZoneGuid], [contactNo], [roleGuid]
+				([guid],[email], [firstName], [lastName], [entityGuid], [companyGuid], [isActive], [isDeleted],[createdDate],[timeZoneGuid], [contactNo], [roleGuid],[subscriptionEndDate])
+			SELECT DISTINCT [guid], [userId], firstName, lastName, entityGuid, @companyGuid, isActive, isDeleted, GETUTCDATE(), [timeZoneGuid], [contactNo], [roleGuid],@renewalDate
 			FROM #tempUser te
 			WHERE NOT EXISTS ( SELECT 1 FROM ExistingUser ee WHERE te.[guid] = ee.[guid] )
+			end
 		END
 			
 		IF(@action = 'update') 
@@ -110,6 +117,7 @@ BEGIN
 				,[roleGuid] = CASE WHEN te.hasRoleGuid = 1 THEN te.roleGuid ELSE d.[roleGuid] END				
 				,[contactNo] = CASE WHEN te.hasContactNo = 1 THEN te.contactNo ELSE d.[contactNo] END				
 				,[timeZoneGuid] = CASE WHEN te.hasTimeZoneGuid = 1 THEN te.timeZoneGuid ELSE d.[timeZoneGuid] END				
+				,[subscriptionEndDate] = ISNULL(@renewalDate,[subscriptionEndDate])
 			FROM dbo.[User] d (NOLOCK)
 			INNER JOIN #tempUser te
 			ON te.guid = d.[guid]    

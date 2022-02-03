@@ -90,23 +90,26 @@
           </div>
           <div class="col-md-12 col-lg-4">
             <div class="dashboard-chart bggreenlwidget text-center hour-module-widget  m-b-20">
-              <h4>{{datadetail.maintenanceSchescheduled}}</h4>
-              <p class="small-widget-heading">Maintenance schescheduled</p>
+              <h4>{{datadetail.maintenanceScheduled }}</h4>
+              <p class="small-widget-heading">Maintenance scheduled</p>
             </div>
             <div class="drag-body dashboard-widget elevator-widget-card">
               <div class="panel-heading">
                 <h5 class="panel-title"> Upcoming Maintenance </h5>
               </div>
-             <mat-card class="dashboard-card mat-card">
-                <ul *ngIf="maintenanceList.length>0" class="maintenance-card-list ">
-                  <li *ngFor="let list of maintenanceList">
-                    <span class="maintain-name">{{list['elevatorName']}} - {{list['buildingName']}}</span>
-                    <span class="maintain-details">{{list['description']}}</span>
-                    <div class="maintenance-date text-right">
-                      <span>{{list['scheduledDate'] | date}}</span>
-                    </div>
-                  </li>
-                </ul>
+              <mat-card class="dashboard-card mat-card">
+                <ng-scrollbar class="my-scrollbar m-b-45" trackX="false" trackY="true" autohide="false"
+                [compact]="true" *ngIf="maintenanceList.length>0">
+                  <ul class="maintenance-card-list ">
+                    <li *ngFor="let list of maintenanceList">
+                      <span class="maintain-name">{{list['elevatorName']}} - {{list['building']}}</span>
+                      <span class="maintain-details">{{list['description']}}</span>
+                      <div class="maintenance-date text-right">
+                        <span>{{list['startDateTime'] | date}}</span>
+                      </div>
+                    </li>
+                  </ul>
+                </ng-scrollbar>
                 <div style="height: 260px;" *ngIf="maintenanceList.length==0" class="centerclass">No records found</div>
               </mat-card>
             </div>
@@ -118,15 +121,17 @@
                 </div>
               </div>
               <mat-card class="dashboard-card mat-card">
-                <ul style="height: 223px;" *ngIf="alerts.length" class="alerts-dashboard alerts-dashboard-legend">
-                  <li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
-                    <span class="alert-info-title">{{alert['message']}}</span>
-                    <span class="alerts-info">{{alert['buildingName']}}</span>
-                    <span class="alerts-info text-right p-r-10">{{getLocalDate(alert['eventDate'])}}</span>
-                  </li>
-
-                </ul>
-                <div style="height: 223px;" *ngIf="!alerts.length" class="centerclass">No records found</div>
+                <ng-scrollbar class="my-scrollbar m-b-45" trackX="false" trackY="true" autohide="false"
+                [compact]="true" *ngIf="alerts.length">
+                  <ul style="height: 223px;" class="alerts-dashboard alerts-dashboard-legend">
+                    <li *ngFor="let alert of alerts" [ngClass]="alert['severity']">
+                      <span class="alert-info-title">{{alert['message']}}</span>
+                      <span class="alerts-info">{{alert['buildingName']}}</span>
+                      <span class="alerts-info text-right p-r-10">{{getLocalDate(alert['eventDate'])}}</span>
+                    </li>
+                  </ul>
+                </ng-scrollbar>
+                <div style="height: 262px;" *ngIf="!alerts.length" class="centerclass">No records found</div>
                 <div class="alert-indicator-wrapper">
                   <div class="alert-indicator-list">
                     <div class="alert-indicator Critical">

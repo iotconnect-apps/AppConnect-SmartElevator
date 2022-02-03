@@ -64,7 +64,33 @@ namespace host.iot.solution.Controllers
             }
             return response;
         }
-
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(UserRoute.Route.Identity, Name = UserRoute.Name.Identity)]
+        public Entity.BaseResponse<object> Identity(Entity.ValidateRequest request)
+        {
+            Entity.BaseResponse<object> response = new Entity.BaseResponse<object>(true, "");
+            try
+            {
+                Entity.ActionStatus loginResponse = _userService.Identity(request.token);
+                if (loginResponse != null && loginResponse.Success)
+                {
+                    response.IsSuccess = true;
+                    response.Data = loginResponse.Data;
+                }
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Message = loginResponse.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<object>(false, ex.Message);
+            }
+            return response;
+        }
         [HttpPost]
         [AllowAnonymous]
         [Route(UserRoute.Route.RefreshToken, Name = UserRoute.Name.RefreshToken)]

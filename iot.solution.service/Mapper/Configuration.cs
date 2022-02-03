@@ -29,6 +29,7 @@ namespace iot.solution.service.Mapper
                 mc.CreateMap<Model.ElevatorMaintenance, Entity.ElevatorMaintenanceDetail>().ReverseMap();
                 mc.CreateMap<Entity.EntityModel, Entity.Entity>().ReverseMap();
                 mc.CreateMap<Model.Elevator, Entity.Elevator>().ReverseMap();
+                mc.CreateMap<Entity.Elevator, Entity.ElevatorLookupDetail>().ReverseMap();
                 mc.CreateMap<Model.Elevator, Entity.DeviceResponse>().ReverseMap();
                 mc.CreateMap<Model.Elevator, Entity.DeviceDetailResponse>().ReverseMap();
                 mc.CreateMap<Model.User, Entity.UserResponse>().ReverseMap();
@@ -39,9 +40,10 @@ namespace iot.solution.service.Mapper
                 mc.CreateMap<Model.KitType, Entity.KitType>().ReverseMap();
                 mc.CreateMap<Model.KitTypeAttribute, Entity.KitTypeAttribute>().ReverseMap();
                 mc.CreateMap<Model.KitTypeCommand, Entity.KitTypeCommand>().ReverseMap();
-              
 
-               
+                mc.CreateMap<Model.MasterWidget, Entity.MasterWidget>().ReverseMap();
+                mc.CreateMap<Model.UserDasboardWidget, Entity.UserDasboardWidget>().ReverseMap();
+
                 mc.CreateMap<IOT.AllRuleResult, Entity.AllRuleResponse>().ReverseMap();
                 mc.CreateMap<IOT.SingleRuleResult, Entity.SingleRuleResponse>().ConvertUsing(new SingleRuleResultToSingleRuleResponse());
                 mc.CreateMap<IOT.EventSubscription, Entity.EventSubscription>().ConvertUsing(new EventSubscriptionToEventSubscriptionResponse());

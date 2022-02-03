@@ -15,6 +15,8 @@
         public int PageSize { get; set; }
         public string OrderBy { get; set; }
         public string SearchText { get; set; }
+        public System.DateTime? CurrentDate { get; set; }
+        public string TimeZone { get; set; }
     }
 
     public class SearchResult<T>

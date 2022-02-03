@@ -11,7 +11,11 @@ namespace iot.solution.entity
         [MaxLength(250)]
         public string Password { get; set; }
     }
-
+    public class ValidateRequest
+    {
+        [Required]
+        public string token { get; set; }
+    }
     public class RefreshTokenRequest 
     {
         public string Token { get; set; }

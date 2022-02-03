@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router'
 import { FormControl, FormGroup, Validators, FormBuilder,AbstractControl } from '@angular/forms'
 import { NgxSpinnerService } from 'ngx-spinner'
-import { Notification, NotificationService, UsersService } from 'app/services';
+import { Notification, NotificationService, UserService } from 'app/services';
 import { CustomValidators } from 'app/helpers/custom.validators';
 
 @Component({
@@ -25,7 +25,7 @@ export class ChangePasswordComponent implements OnInit {
     private _notificationService: NotificationService,
     private activatedRoute: ActivatedRoute,
     private spinner: NgxSpinnerService,
-    public userService: UsersService
+    public userService: UserService
   ) {
     this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
     this.createFormGroup();
@@ -37,9 +37,9 @@ export class ChangePasswordComponent implements OnInit {
   }
 
 
-    /**
-   * Get current user info
-   */
+  /**
+  * Get current user info
+  */
   getCurrentUserInfo() {
     this.spinner.show();
     let userGuid = this.currentUser.userDetail.id;
@@ -48,12 +48,12 @@ export class ChangePasswordComponent implements OnInit {
       if (response.isSuccess === true) {
         this.userObject = response.data;
       } else {
-        this._notificationService.add(new Notification('error', response.message));
+        this._notificationService.handleResponse(response,"error");
         this.userObject = {};
       }
     }, error => {
       this.spinner.hide();
-      this._notificationService.add(new Notification('error', error));
+      this._notificationService.handleResponse(error,"error");
     });
   }
 
@@ -79,6 +79,9 @@ export class ChangePasswordComponent implements OnInit {
     console.log(obj);
   }
 
+  /**
+  * For set validation of password and confirm password
+  */
   passwordConfirming(c: AbstractControl): { invalid: boolean } {
     if (c.get('newPassword').value !== c.get('confirmPassword').value) {
         return {invalid: true};
@@ -93,7 +96,7 @@ export class ChangePasswordComponent implements OnInit {
     if (this.userForm.status === "VALID") {
       this.spinner.show();
       if(!this.userObject){
-         this._notificationService.add(new Notification('error', "User not found"));
+        this._notificationService.handleResponse({message:"User not found"},"error");
          return false;
       }
       this.userForm.registerControl("email", new FormControl(''));
@@ -111,39 +114,45 @@ export class ChangePasswordComponent implements OnInit {
     }
   }
 
+  /**
+  * For change conpany user password
+  */
   companyUserChangePassword(sendModel){
      this.userService.changePassword(sendModel).subscribe(response => {
         this.spinner.hide();
         if (response.isSuccess === true) {
-          this._notificationService.add(new Notification('success', "Password has been changed successfully."));
+          this._notificationService.handleResponse({message:"Password changed successfully."},"success");
           localStorage.clear();
           this.router.navigate(['/login']);
         } else {
           this.userForm.reset();
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
         this.userForm.reset();
-        this._notificationService.add(new Notification('error', error));
+        this._notificationService.handleResponse(error,"error");
       })
   }
 
+  /**
+  * For change admin user password
+  */
   adminUserChangePassword(sendModel){
     this.userService.changeAdminPassword(sendModel).subscribe(response => {
        this.spinner.hide();
        if (response.isSuccess === true) {
-         this._notificationService.add(new Notification('success', "Password has been changed successfully."));
+        this._notificationService.handleResponse({message:"Password changed successfully."},"success");
          localStorage.clear();
          this.router.navigate(['/admin']);
        } else {
          this.userForm.reset();
-         this._notificationService.add(new Notification('error', response.message));
+         this._notificationService.handleResponse(response,"error");
        }
      }, error => {
        this.spinner.hide();
        this.userForm.reset();
-       this._notificationService.add(new Notification('error', error));
+       this._notificationService.handleResponse(error,"error");
      })
  }
 }

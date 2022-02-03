@@ -15,7 +15,7 @@ namespace iot.solution.service.Interface
         Entity.SearchResult<List<Entity.EntityDetail>> List(Entity.SearchRequest request);
         Entity.ActionStatus UpdateStatus(Guid id, bool status);
         Response.EntityDetailResponse GetEntityDetail(Guid entityId);
-        Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverviewDetail(Guid buildingId);
-        Entity.BuildingOverviewResponse GetBuildingOverview(Guid buildingId, string frequency);
+        Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverviewDetail(Guid buildingId, DateTime currentDate, string timeZone);
+        Entity.BuildingOverviewResponse GetBuildingOverview(Guid buildingId, string frequency, DateTime currentDate, string timeZone);
     }
 }

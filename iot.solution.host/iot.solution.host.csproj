@@ -48,6 +48,9 @@
     <Content Update="web.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\Configuration.UAT.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\Configuration.Dev.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -50,7 +50,7 @@ namespace iot.solution.model.Repository.Implementation
                     parameters.Add(sqlDataAccess.CreateParameter("culture", SolutionConfiguration.Culture, DbType.String, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("enableDebugInfo", SolutionConfiguration.EnableDebugInfo, DbType.String, ParameterDirection.Input));
                     int intResult = sqlDataAccess.ExecuteNonQuery(sqlDataAccess.CreateCommand("[Company_AddUpdate]", CommandType.StoredProcedure, null), parameters.ToArray());
-                    result.Data = int.Parse(parameters.Where(p => p.ParameterName.Equals("newid")).FirstOrDefault().Value.ToString());
+                    //result.Data = int.Parse(parameters.Where(p => p.ParameterName.Equals("newid")).FirstOrDefault().Value.ToString());
                 }
                 logger.InfoLog(Constants.ACTION_EXIT, "CompanyRepository.Manage");
             }
@@ -81,7 +81,7 @@ namespace iot.solution.model.Repository.Implementation
                     parameters.Add(sqlDataAccess.CreateParameter("culture", SolutionConfiguration.Culture, DbType.String, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("enableDebugInfo", SolutionConfiguration.EnableDebugInfo, DbType.String, ParameterDirection.Input));
                     int intResult = sqlDataAccess.ExecuteNonQuery(sqlDataAccess.CreateCommand("[Company_UpdateDetail]", CommandType.StoredProcedure, null), parameters.ToArray());
-                    result.Data = int.Parse(parameters.Where(p => p.ParameterName.Equals("newid")).FirstOrDefault().Value.ToString());
+                    //result.Data = int.Parse(parameters.Where(p => p.ParameterName.Equals("newid")).FirstOrDefault().Value.ToString());
                 }
                 logger.InfoLog(Constants.ACTION_EXIT, "CompanyRepository.Manage");
             }

@@ -13,5 +13,6 @@ namespace iot.solution.service.Interface
         Entity.BaseResponse<List<Response.OperationHours>> GetOperationHours(Request.ChartRequest request);
         Entity.BaseResponse<List<Response.DevicePeakHoursResponse>> GetPeakHoursByElevator(Request.ElevatorsPeakRequest request);
         Entity.BaseResponse<List<Response.DeviceTripsResponse>> GetTripsByElevator(Guid elevatorId);
+        Entity.ActionStatus SendSubscriptionNotification();
     }
 }

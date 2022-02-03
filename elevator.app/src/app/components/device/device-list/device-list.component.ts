@@ -49,10 +49,16 @@ export class DeviceListComponent implements OnChanges {
 			this.getChildDeviceList();
 	}
 
+	/**
+     * For Get dashboard overview and counts
+	*/
 	clickAdd() {
 		this.router.navigate(['/device/add']);
 	}
 
+	/**
+     * For set order for device list
+	*/
 	setOrder(sort: any) {
 		if (!sort.active || sort.direction === '') {
 			return;
@@ -61,6 +67,9 @@ export class DeviceListComponent implements OnChanges {
 		this.getChildDeviceList();
 	}
 
+	/**
+    * For open devices delete confirmation model
+	*/
 	deleteModel(DeviceModel: any) {
 		this.deleteAlertDataModel = {
 			title: "Delete Device",
@@ -81,6 +90,9 @@ export class DeviceListComponent implements OnChanges {
 		});
 	}
 
+	/**
+    * For Manage paggination
+	*/
 	ChangePaginationAsPageChange(pagechangeresponse) {
 		this.searchParameters.pageNo = pagechangeresponse.pageIndex;
 		this.searchParameters.pageSize = pagechangeresponse.pageSize;
@@ -88,6 +100,9 @@ export class DeviceListComponent implements OnChanges {
 		this.getChildDeviceList();
 	}
 
+	/**
+	* For search text call back
+	**/
 	searchTextCallback(filterText) {
 		this.searchParameters.searchText = filterText;
 		this.searchParameters.pageNo = 0;
@@ -96,11 +111,12 @@ export class DeviceListComponent implements OnChanges {
 	}
 
 
-
+	/**
+    * For get child device list
+	*/
 	getChildDeviceList() {
-
 		if(!this.parentDeviceId)
-			this._notificationService.add(new Notification('error', "Parent device ID is not found"));
+		this._notificationService.handleResponse({message:"Parent device ID is not found"},"error");
 
 		this.spinner.show();
 		this.deviceService.getChildDevices(this.parentDeviceId, this.searchParameters).subscribe(response => {
@@ -110,15 +126,18 @@ export class DeviceListComponent implements OnChanges {
 				this.dataSource = response.data.items;
 			}
 			else {
-				this._notificationService.add(new Notification('error', response.message));
+				this._notificationService.handleResponse(response,"error");
 				this.dataSource = [];
 			}
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 
+	/**
+    * For manage devices status
+	*/
 	activeInactiveDevice(deviceId: string, isActive: boolean, name: string) {
 		var status = isActive == false ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
 		var mapObj = {
@@ -149,39 +168,45 @@ export class DeviceListComponent implements OnChanges {
 
 	}
 
+	/**
+    * For change device status
+	*/
 	changeDeviceStatus(deviceId, isActive) {
 		this.spinner.show();
 		this.deviceService.changeStatus(deviceId, isActive).subscribe(response => {
 			this.spinner.hide();
 			if (response.isSuccess === true) {
-				this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "Device")));
+				this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "Device")},"success");
 				this.getChildDeviceList();
 
 			}
 			else {
-				this._notificationService.add(new Notification('error', response.message));
+				this._notificationService.handleResponse(response,"error");
 			}
 
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 
+	/**
+    * For delete device
+	*/
 	deleteDevice(guid) {
 		this.spinner.show();
 		this.deviceService.deleteDevice(guid).subscribe(response => {
 			this.spinner.hide();
 			if (response.isSuccess === true) {
-				this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "Device")));
+				this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "Device")},"success");
 				this.getChildDeviceList();
 			}
 			else {
-				this._notificationService.add(new Notification('error', response.message));
+				this._notificationService.handleResponse(response,"error");
 			}
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 

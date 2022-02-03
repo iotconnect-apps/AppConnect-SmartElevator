@@ -62,8 +62,8 @@ body.login .form .entry-item label {
     padding-bottom: 5px;
     min-height: 30px;
 }
-body.login .form .entry-item label p{ display: flex; align-items: flex-end; line-height: 23px;margin:0;} 
-body.login .form .entry-item input{ 
+body.login .form .entry-item label p{ display: flex; align-items: flex-end; line-height: 23px;margin:0;}
+body.login .form .entry-item input{
       width: 100%;
     outline: 0;
     box-shadow: none;
@@ -190,7 +190,7 @@ body.login .error-icon {
     top: 44px;
 }
 body.login .error-text {
-    display: none;  
+    display: none;
     background: #000;
     color: #ffffff;
     padding: 6px 9px;
@@ -293,7 +293,7 @@ body.login .form .rememberMe label {
 	/*BOf Header***/
 	body.login header{min-height:70px;}
 	body.login header .logo img {
-        width: 130px;
+        width: 95px;
         padding-top: 0;
 	}
 	/*EOf Header***/

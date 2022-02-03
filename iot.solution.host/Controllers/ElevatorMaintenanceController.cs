@@ -41,7 +41,7 @@ namespace host.iot.solution.Controllers
         [HttpGet]
         [Route(ElevatorMaintenanceRoute.Route.GetById, Name = ElevatorMaintenanceRoute.Name.GetById)]
         [EnsureGuidParameterAttribute("id", "Elevator Maintenance")]
-        public Entity.BaseResponse<Entity.ElevatorMaintenance> Get(string id)
+        public Entity.BaseResponse<Entity.ElevatorMaintenance> Get(string id, DateTime currentDate, string timeZone)
         {
             if (id == null || Guid.Parse(id) == Guid.Empty)
             {
@@ -52,7 +52,7 @@ namespace host.iot.solution.Controllers
             try
             {
 
-                response.Data = _maintenanceService.Get(Guid.Parse(id));
+                response.Data = _maintenanceService.Get(Guid.Parse(id),currentDate, timeZone);
             }
             catch (Exception ex)
             {
@@ -108,7 +108,7 @@ namespace host.iot.solution.Controllers
 
         [HttpGet]
         [Route(ElevatorMaintenanceRoute.Route.BySearch, Name = ElevatorMaintenanceRoute.Name.BySearch)]
-        public Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorMaintenanceDetail>>> GetBySearch(string entityGuid = "", string searchText = "", int? pageNo = 1, int? pageSize = 10, string orderBy = "")
+        public Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorMaintenanceDetail>>> GetBySearch(string entityGuid = "", string searchText = "", int? pageNo = 1, int? pageSize = 10, string orderBy = "", DateTime? currentDate = null, string timeZone = "")
         {
             Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorMaintenanceDetail>>> response = new Entity.BaseResponse<Entity.SearchResult<List<Entity.ElevatorMaintenanceDetail>>>(true);
             try
@@ -119,7 +119,9 @@ namespace host.iot.solution.Controllers
                     SearchText = searchText,
                     PageNumber = pageNo.Value,
                     PageSize = pageSize.Value,
-                    OrderBy = orderBy
+                    OrderBy = orderBy,
+                    CurrentDate = currentDate,
+                    TimeZone = timeZone
                 });
             }
             catch (Exception ex)
@@ -153,7 +155,7 @@ namespace host.iot.solution.Controllers
 
         [HttpGet]
         [Route(ElevatorMaintenanceRoute.Route.UpComingList, Name = ElevatorMaintenanceRoute.Name.UpComingList)]
-        public Entity.BaseResponse<List<Entity.ElevatorMaintenanceResponse>> UpcomingList(string buildingid = "", string elevatorid = "")
+        public Entity.BaseResponse<List<Entity.ElevatorMaintenanceResponse>> UpcomingList(string buildingid = "", string elevatorid = "", DateTime? currentDate = null, string timeZone = "")
         {
             Entity.BaseResponse<List<Entity.ElevatorMaintenanceResponse>> response = new Entity.BaseResponse<List<Entity.ElevatorMaintenanceResponse>>(true);
             try
@@ -174,6 +176,9 @@ namespace host.iot.solution.Controllers
                 {
                     request.ElevatorGuid = Guid.Parse(elevatorid);
                 }
+               
+                request.CurrentDate = currentDate;
+                request.TimeZone = timeZone;
                 
                 response.Data = _maintenanceService.GetUpComingList(request);
             }

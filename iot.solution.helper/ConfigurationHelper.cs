@@ -30,6 +30,7 @@ namespace component.helper
         public static string Culture { get { return "en-Us"; } }
         public static char EnableDebugInfo { get { return '0'; } }
         public static string Version { get; set; } = "v1";
+        public static string EmailTemplatePath { get; set; } = "EmailTemplate/";
         public static string UploadBasePath { get; set; } = "wwwroot/";
         public static string CompanyFilePath { get; set; } = "CompanyFiles/";
         public static string ElevatorImageBasePath { get; set; } = "ElevatorImages/";
@@ -45,12 +46,38 @@ namespace component.helper
         public string SolutionName { get; set; }
         public string SolutionKey { get; set; }
         public string EnvironmentCode { get; set; }
+        public string DefaultIoTTemplateCode { get; set; }
         public SubscriptionAPISetting SubscriptionAPI { get; set; }
         public Messaging Messaging { get; set; }
         public TokenSetting Token { get; set; }
         public LoggerSetting Logger { get; set; }
         public HangFireSetting HangFire { get; set; }
         public List<IOTConnectSetting> IOTConnectSettings { get; set; }
+        public SmtpSetting SmtpSetting { get; set; }
+        public EmailTemplateSettings EmailTemplateSettings { get; set; }
+    }
+
+    public class SmtpSetting
+    {
+        public string Host { get; set; }
+        public int Port { get; set; }
+        public string UserName { get; set; }
+        public string FromDisplayName { get; set; }
+        public string FromMail { get; set; }
+        public string Password { get; set; }
+        public string Regards { get; set; }
+    }
+
+    public class EmailTemplateSettings
+    {
+        public string UserList { get; set; }
+        public string CompanyRegistrationSubject { get; set; }
+        public string CompanyAdminUserList { get; set; }
+        public string SubscriptionExpirySubject { get; set; }
+        public string SubscriptionExpiryUserList { get; set; }
+        public string CompanyUserList { get; set; }
+        public string ImageBaseUrl { get; set; }
+        public string MailSolutionName { get; set; }
     }
 
     public class IOTConnectSetting
@@ -71,6 +98,7 @@ namespace component.helper
         public string ClientID { get; set; }
         public string ClientSecret { get; set; }
         public string SolutionCode { get; set; }
+        public string SolutionId { get; set; }
         public string UserName { get; set; }
         public string StripeAPIKey { get; set; }
     }
@@ -84,9 +112,17 @@ namespace component.helper
 
     public class TokenSetting
     {
+        public bool EnableJWTAuth { get; set; }
         public string Issuer { get; set; }
         public string Audience { get; set; }
         public string SecurityKey { get; set; }
+
+        public string Authority { get; set; }
+        public string ApiName { get; set; }
+        public string ApiSecret { get; set; }
+        public bool EnableCaching { get; set; }
+        public int CacheDurationMinutes { get; set; }
+        public bool RequireHttpsMetadata { get; set; }
     }
 
     public class LoggerSetting

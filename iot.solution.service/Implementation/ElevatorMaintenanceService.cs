@@ -42,16 +42,12 @@ namespace iot.solution.service.Implementation
                 return new List<Entity.ElevatorMaintenance>();
             }
         }
-        public Entity.ElevatorMaintenance Get(Guid id)
+        public Entity.ElevatorMaintenance Get(Guid id, DateTime currentDate, string timeZone)
         {
             Entity.ElevatorMaintenance maintenance = new Entity.ElevatorMaintenance();
             try
             {
-                maintenance = _elevatorMaintenanceRepository.FindBy(t => t.Guid == id).Select(p => Mapper.Configuration.Mapper.Map<Entity.ElevatorMaintenance>(p)).FirstOrDefault();
-                if (maintenance != null) {
-                    maintenance.BuildingGuid = _entityRepository.FindBy(t => t.Guid == maintenance.EntityGuid).FirstOrDefault().ParentEntityGuid;
-                   
-                }                
+                maintenance = maintenance = _elevatorMaintenanceRepository.Get(id, currentDate, timeZone);
                 return maintenance;
                 
             }
@@ -73,14 +69,23 @@ namespace iot.solution.service.Implementation
                     dbElevatorMaintenance.Guid = request.Guid;
                     dbElevatorMaintenance.CompanyGuid = SolutionConfiguration.CompanyId;
                     DateTime dateValue;
-                    if (DateTime.TryParse(request.ScheduledDate.ToString(), out dateValue))
-                        dbElevatorMaintenance.ScheduledDate = dateValue;
 
+                    if (DateTime.TryParse(request.StartDateTime.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(request.TimeZone));
+                        dbElevatorMaintenance.StartDateTime = dateValue;
+                    }
+
+                    if (DateTime.TryParse(request.EndDateTime.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(request.TimeZone));
+                        dbElevatorMaintenance.EndDateTime = dateValue;
+                    }
                     actionStatus = _elevatorMaintenanceRepository.Manage(dbElevatorMaintenance);
                     if (actionStatus.Data != null)
                     {
                         //   actionStatus.Data = Mapper.Configuration.Mapper.Map<Model.ElevatorMaintenance, Entity.ElevatorMaintenance>(actionStatus.Data);
-                        actionStatus.Data = Get(actionStatus.Data);
+                        actionStatus.Data = Get(actionStatus.Data,DateTime.Now, request.TimeZone);
                     }
                     if (!actionStatus.Success)
                     {
@@ -92,13 +97,25 @@ namespace iot.solution.service.Implementation
                 else
                 {
                     var olddbElevatorMaintenance = _elevatorMaintenanceRepository.FindBy(x => x.Guid.Equals(request.Guid)).FirstOrDefault();
+                 
                     if (olddbElevatorMaintenance == null)
                     {
                         throw new NotFoundCustomException($"{CommonException.Name.NoRecordsFound} : ElevatorMaintenance");
                     }
                     var dbElevatorMaintenance = Mapper.Configuration.Mapper.Map(request, olddbElevatorMaintenance);
                     dbElevatorMaintenance.CompanyGuid = SolutionConfiguration.CompanyId;
+                    DateTime dateValue;
+                    if (DateTime.TryParse(request.StartDateTime.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(request.TimeZone));
+                        dbElevatorMaintenance.StartDateTime = dateValue;
+                    }
 
+                    if (DateTime.TryParse(request.EndDateTime.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(request.TimeZone));
+                        dbElevatorMaintenance.EndDateTime = dateValue;
+                    }
                     actionStatus = _elevatorMaintenanceRepository.Manage(dbElevatorMaintenance);
                     if (actionStatus.Data != null)
                     {
@@ -168,7 +185,7 @@ namespace iot.solution.service.Implementation
                 {
                     throw new NotFoundCustomException($"{CommonException.Name.NoRecordsFound} : ElevatorMaintenance");
                 }               
-                    dbElevatorMaintenance.Status = status.ToString();                    
+                    //dbElevatorMaintenance.Status = status.ToString();                    
                     return _elevatorMaintenanceRepository.Update(dbElevatorMaintenance);   
             }
             catch (Exception ex)

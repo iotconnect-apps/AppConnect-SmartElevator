@@ -10,5 +10,7 @@ namespace host.iot.solution.RecurringJobs
 
         [DisableConcurrentExecution(10 * 60)]
         void HourlyProcess();
+        [DisableConcurrentExecution(10 * 60)]
+        void SubscriptionMailProcess();
     }
 }

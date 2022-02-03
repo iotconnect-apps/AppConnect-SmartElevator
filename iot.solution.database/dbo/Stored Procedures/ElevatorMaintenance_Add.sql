@@ -8,7 +8,8 @@ EXEC [dbo].[ElevatorMaintenance_Add]
 	,@entityGuid			= '98611812-0DB2-4183-B352-C3FEC9A3D1A4'
 	,@elevatorGuid	= '98611812-0DB2-4183-B352-C3FEC9A3D1A4'
 	,@description	= 'New Factory Description'
-	,@status		= 'AAGreenhouse222'
+	,@startDateTime		= '2020-05-19 15:10:04.620'
+	,@endDateTime		= '2020-05-19 23:10:04.620'
 	,@invokingUser	= 'C1596B8C-7065-4D63-BFD0-4B835B93DFF2'              
 	,@version		= 'v1'              
 	,@newid			= @newid		OUTPUT
@@ -25,8 +26,8 @@ CREATE PROCEDURE [dbo].[ElevatorMaintenance_Add]
 	,@entityGuid	UNIQUEIDENTIFIER
 	,@elevatorGuid  UNIQUEIDENTIFIER	
 	,@description	NVARCHAR(1000)		= NULL
-	,@status		NVARCHAR(100)	
-	,@scheduledDate	DATETIME			= NULL
+	,@startDateTime	DATETIME			= NULL
+	,@endDateTime	DATETIME			= NULL
 	,@invokingUser	UNIQUEIDENTIFIER	= NULL
 	,@version		nvarchar(10)    
 	,@newid			UNIQUEIDENTIFIER	OUTPUT
@@ -49,8 +50,8 @@ BEGIN
             	, CONVERT(nvarchar(MAX),@entityGuid) AS '@entityGuid' 
 				, CONVERT(nvarchar(MAX),@elevatorGuid) AS '@elevatorGuid' 				
 				, @description AS '@description' 
-				, @status AS '@status'
-				, CONVERT(nvarchar(100),@scheduledDate) AS '@scheduledDate'
+				, CONVERT(nvarchar(50),@startDateTime) AS '@startDateTime'
+				, CONVERT(nvarchar(50),@endDateTime) AS '@endDateTime'
 				, CONVERT(nvarchar(MAX),@invokingUser) AS '@invokingUser'
             	, CONVERT(nvarchar(MAX),@version) AS '@version' 
             	, CONVERT(nvarchar(MAX),@output) AS '@output' 
@@ -67,7 +68,10 @@ BEGIN
 
 	BEGIN TRY
 
-		IF EXISTS(SELECT TOP 1 1 FROM [dbo].[ElevatorMaintenance] where [elevatorGuid] = @elevatorGuid and [companyGuid] = @companyGuid and [entityGuid] = @entityGuid AND [status] <> 'Completed' AND [isDeleted] = 0)
+		IF EXISTS(SELECT TOP 1 1 FROM [dbo].[ElevatorMaintenance] 
+					where [elevatorGuid] = @elevatorGuid and [companyGuid] = @companyGuid and [entityGuid] = @entityGuid 
+						AND ((@startDateTime BETWEEN [startDateTime] AND [endDateTime]) OR (@endDateTime BETWEEN [startDateTime] AND [endDateTime]))
+						AND [isDeleted] = 0)
 		BEGIN
 			SET @output = -3
 			SET @fieldname = 'Elevator Maintenance already exists for selected wing!'	
@@ -82,9 +86,9 @@ BEGIN
 				,[entityGuid]
 				,[elevatorGuid]
 				,[description]
-				,[status]
+				,[startDateTime]
+				,[endDateTime]
 				,[createddate]
-				,[scheduledDate]
 				,[isDeleted]
 				)
 			VALUES(@newid
@@ -92,9 +96,9 @@ BEGIN
 				,@entityGuid
 				,@elevatorGuid
 				,@description
-				,@status
+				,@startDateTime
+				,@endDateTime
 				,GETUTCDATE()
-				,@scheduledDate
 				,0
 				)	
 	COMMIT TRAN	

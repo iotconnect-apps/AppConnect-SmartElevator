@@ -97,15 +97,19 @@ export class AdminNotificationAddComponent implements OnInit {
     });
     this.createFormGroup();
   }
+
+  /**
+	* For Verify condition of rules  
+	**/
   verifyCondition() {
     if (this.postForm.controls['conditionText'].value && this.postForm.controls['templateGuid'].value) {
       this.ruleService.verifyCondtion({ expression: this.postForm.controls['conditionText'].value, deviceTemplateGuid: this.postForm.controls['templateGuid'].value }).subscribe(response => {
         this.spinner.hide();
         if (response.isSuccess === true) {
-          this._notificationService.add(new Notification('success', "Condition verified successfully"));
+          this._notificationService.handleResponse({message:"Condition verified successfully"},"success");
         }
         else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
@@ -113,14 +117,16 @@ export class AdminNotificationAddComponent implements OnInit {
     }
     else {
       if (this.postForm.controls['templateGuid'].value === '') {
-        this._notificationService.add(new Notification('error', "please select template"));
+        this._notificationService.handleResponse({message:"please select template"},"error");
       } else {
-        this._notificationService.add(new Notification('error', "please enter condtions"));
+        this._notificationService.handleResponse({message:"please enter condtions"},"error");
       }
     }
   }
 
-
+  /**
+	* For chech notification is checked  
+	**/
   checkIschecked(modulePermission, index) {
     if ((modulePermission & (1 << index)) >> index) {
       return true;
@@ -129,10 +135,17 @@ export class AdminNotificationAddComponent implements OnInit {
     }
   }
 
+  /**
+	* For handle attribute
+	**/
   clickAttribute(name) {
     let val = this.postForm.controls['conditionText'].value;
     this.postForm.patchValue({ conditionText: val + name });
   }
+
+  /**
+	* For get notification detail
+	**/
   getNotificationDetail() {
     this.spinner.show();
     this.ruleService.getRuleDetail(this.notificationGuid).subscribe(response => {
@@ -165,15 +178,19 @@ export class AdminNotificationAddComponent implements OnInit {
         this.getTemplateAttributeLookup();
       } else {
         this.router.navigate(['/admin/notification']);
-        this._notificationService.add(new Notification('error', 'Notification not found'));
+        this._notificationService.handleResponse({message:"Notification not found"},"error");
       }
     }, error => {
       this.spinner.hide();
       this.router.navigate(['/admin/notification']);
-      this._notificationService.add(new Notification('error', 'Notification not found'));
+      this._notificationService.handleResponse({message:"Notification not found"},"error");
+      
     });
   }
 
+  /**
+	* For Create notification form group
+	**/
   createFormGroup() {
     this.postForm = new FormGroup({
       templateGuid: new FormControl('', [Validators.required]),
@@ -194,6 +211,9 @@ export class AdminNotificationAddComponent implements OnInit {
 
   }
 
+  /**
+	* For get selected notification 
+	**/
   getSelectedNotification() {
     this.selectedNotification = _.map(
       this.postForm.controls.notificationTypes["controls"],
@@ -210,6 +230,9 @@ export class AdminNotificationAddComponent implements OnInit {
     this.getSelectedNotificationName();
   }
 
+  /**
+	* For get selected notification name
+	**/
   getSelectedNotificationName() {
     this.selectedNotification = _.filter(
       this.selectedNotification,
@@ -221,6 +244,9 @@ export class AdminNotificationAddComponent implements OnInit {
     );
   }
 
+  /**
+	* For create new notification
+	**/
   createNotifications(notesInputs) {
     const arr = notesInputs.map(note => {
       return new FormControl(note.selected || false);
@@ -228,6 +254,9 @@ export class AdminNotificationAddComponent implements OnInit {
     return new FormArray(arr);
   }
 
+  /**
+	* For fire event on rule type change
+	**/
   ruleTypeChange() {
     this.ruleType = this.postForm.controls['ruleType'].value;
     this.postForm.patchValue({
@@ -238,6 +267,10 @@ export class AdminNotificationAddComponent implements OnInit {
     this.attributeGuidValidationMsg = false;
     this.condtionValueValidationMsg = false;
   }
+
+  /**
+	* For submit notification
+	**/
   submitForm() {
     this.checkSubmitStatus = true;
     let typeOneValidation = true;
@@ -295,13 +328,13 @@ export class AdminNotificationAddComponent implements OnInit {
         if (response.isSuccess === true) {
           this.router.navigate(['/admin/notification']);
           if(this.isEdit){
-            this._notificationService.add(new Notification('success', "Rule has been updated successfully."));
+            this._notificationService.handleResponse({message:"Rule updated successfully"},"success");
           }else{
-            this._notificationService.add(new Notification('success', "Rule has been added successfully."));
+            this._notificationService.handleResponse({message:"Rule created successfully"},"success");
           }
         }
         else {
-          this._notificationService.add(new Notification('error', response.message));
+          this._notificationService.handleResponse(response,"error");
         }
       }, error => {
         this.spinner.hide();
@@ -310,6 +343,9 @@ export class AdminNotificationAddComponent implements OnInit {
     }
   }
 
+  /**
+	* For get template lookup
+	**/
   getTemplateLookup() {
     this.gatewayService.getTemplateLookup().subscribe(response => {
       if (response.isSuccess === true) {
@@ -328,6 +364,9 @@ export class AdminNotificationAddComponent implements OnInit {
     });
   }
 
+  /**
+	* For get template atteribute lookup
+	**/
   getTemplateAttributeLookup() {
     if (this.postForm.controls['templateGuid'].value !== '') {
 
@@ -365,6 +404,9 @@ export class AdminNotificationAddComponent implements OnInit {
     }
   }
 
+  /**
+	* For Get Severity level lookup
+	**/
   getSeveritylevelLookup() {
     this.spinner.show();
     this.ruleService.getSeveritylevelLookup().subscribe(response => {
@@ -383,6 +425,9 @@ export class AdminNotificationAddComponent implements OnInit {
     });
   }
 
+  /**
+	* For Get Condition lookup
+	**/
   getConditionLookup() {
     this.spinner.show();
     this.ruleService.getConditionLookup().subscribe(response => {

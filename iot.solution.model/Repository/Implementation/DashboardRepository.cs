@@ -20,7 +20,7 @@ namespace iot.solution.model.Repository.Implementation
             _uow = unitOfWork;
         }
 
-        public Entity.BaseResponse<List<Entity.DashboardOverviewResponse>> GetStatistics()
+        public Entity.BaseResponse<List<Entity.DashboardOverviewResponse>> GetStatistics(DateTime? currentDate = null, string timeZone = "")
         {
             Entity.BaseResponse<List<Entity.DashboardOverviewResponse>> result = new Entity.BaseResponse<List<Entity.DashboardOverviewResponse>>();
             try
@@ -28,8 +28,14 @@ namespace iot.solution.model.Repository.Implementation
                 _logger.InfoLog(Constants.ACTION_ENTRY, "DashboardRepository.Get");
                 using (var sqlDataAccess = new SqlDataAccess(ConnectionString))
                 {
+                    DateTime dateValue;
+                    if (DateTime.TryParse(currentDate.ToString(), out dateValue))
+                    {
+                        dateValue = dateValue.AddMinutes(-double.Parse(timeZone));
+                    }
                     List<DbParameter> parameters = sqlDataAccess.CreateParams(SolutionConfiguration.CurrentUserId, SolutionConfiguration.Version);
                     parameters.Add(sqlDataAccess.CreateParameter("guid", SolutionConfiguration.CompanyId, DbType.Guid, ParameterDirection.Input));
+                    parameters.Add(sqlDataAccess.CreateParameter("currentDate", dateValue, DbType.DateTime, ParameterDirection.Input));
                     parameters.Add(sqlDataAccess.CreateParameter("syncDate", DateTime.UtcNow, DbType.DateTime, ParameterDirection.Output));
                     DbDataReader dbDataReader = sqlDataAccess.ExecuteReader(sqlDataAccess.CreateCommand("[CompanyStatistics_Get]", CommandType.StoredProcedure, null), parameters.ToArray());
                     result.Data = DataUtils.DataReaderToList<Entity.DashboardOverviewResponse>(dbDataReader, null);

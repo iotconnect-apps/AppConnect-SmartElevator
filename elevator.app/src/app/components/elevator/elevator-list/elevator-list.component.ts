@@ -6,7 +6,7 @@ import { DeleteDialogComponent } from '../../../components/common/delete-dialog/
 import { tap } from 'rxjs/operators';
 import { AppConstant, DeleteAlertDataModel } from "../../../app.constants";
 import { empty } from 'rxjs';
-import { UsersService, Notification, NotificationService, ElevatorService } from '../../../services';
+import { UserService, Notification, NotificationService, ElevatorService } from '../../../services';
 
 @Component({
 	selector: 'app-elevator-list',
@@ -24,7 +24,7 @@ export class ElevatorListComponent implements OnInit {
 	totalRecords = 0;
 	pageSizeOptions: number[] = [5, 10, 25, 100];
 	moduleName = "Elevators";
-  displayedColumns: string[] = ['name', 'building', 'wing', 'isProvisioned'];
+  displayedColumns: string[] = ['uniqueId','name', 'building', 'wing', 'isProvisioned'];
 	order = true;
 	isSearch = false;
 	reverse = false;
@@ -43,7 +43,7 @@ export class ElevatorListComponent implements OnInit {
 		public dialog: MatDialog,
 		private spinner: NgxSpinnerService,
 		private router: Router,
-		private userService: UsersService,
+		private userService: UserService,
 		public _appConstant: AppConstant,
 		private _notificationService: NotificationService,
 		private elevatorService: ElevatorService,
@@ -52,18 +52,27 @@ export class ElevatorListComponent implements OnInit {
 
 	ngOnInit() {
 		this.getelevator();
-
 	}
 
+	/**
+    * For Filter data 
+	**/
 	applyFilter(filterValue: string) {
 		filterValue = filterValue.trim(); // Remove whitespace
 		filterValue = filterValue.toLowerCase(); // Datasource defaults to lowercase matches
 		this.dataSource.filter = filterValue;
 	}
+
+	/**
+    * For goto add elevator section
+	**/
 	clickAdd() {
 		this.router.navigate(['elevators/add']);
 	}
 
+	/**
+    * For set order of elevator list
+	**/
 	setOrder(sort: any) {
 		console.log(sort);
 		if (!sort.active || sort.direction === '') {
@@ -73,9 +82,9 @@ export class ElevatorListComponent implements OnInit {
 		this.getelevator();
 	}
 
-	log(obj) {
-		console.log(obj);
-	}
+	/**
+    * For Manage Paggination
+	**/
 	onPageSizeChangeCallback(pageSize) {
 		this.searchParameters.pageSize = pageSize;
 		this.searchParameters.pageNumber = 1;
@@ -83,6 +92,9 @@ export class ElevatorListComponent implements OnInit {
 		this.getelevator();
 	}
 
+	/**
+    * For Change paggination page
+	**/
 	ChangePaginationAsPageChange(pagechangeresponse) {
 		this.searchParameters.pageNumber = pagechangeresponse.pageIndex;
 		this.searchParameters.pageSize = pagechangeresponse.pageSize;
@@ -90,6 +102,9 @@ export class ElevatorListComponent implements OnInit {
 		this.getelevator();
 	}
 
+	/**
+	* For search text call back
+	**/
 	searchTextCallback(filterText) {
 		this.searchParameters.searchText = filterText;
 		this.searchParameters.pageNumber = 0;
@@ -97,6 +112,9 @@ export class ElevatorListComponent implements OnInit {
 		this.isSearch = true;
 	}
 
+	/**
+    * For Get elevator list
+	**/
 	getelevator() {
 		this.spinner.show();
 		this.elevatorService.getelevatorlist(this.searchParameters).subscribe(response => {
@@ -112,7 +130,7 @@ export class ElevatorListComponent implements OnInit {
 
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 
@@ -120,6 +138,9 @@ export class ElevatorListComponent implements OnInit {
 		this.applyFilter(filterValue);
 	}
 
+	/**
+    * For open delete user confirmation model
+	**/
 	deleteModel(userModel: any) {
 		this.deleteAlertDataModel = {
 			title: "Delete User",
@@ -140,25 +161,31 @@ export class ElevatorListComponent implements OnInit {
 		});
 	}
 
+	/**
+    * For delete user
+	**/
 	deleteuser(guid) {
 		this.spinner.show();
 		this.userService.deleteadminUser(guid).subscribe(response => {
 			this.spinner.hide();
 			if (response.isSuccess === true) {
-				this._notificationService.add(new Notification('success', this._appConstant.msgDeleted.replace("modulename", "User")));
+				this._notificationService.handleResponse({message:this._appConstant.msgDeleted.replace("modulename", "User")},"success");
 				this.getelevator();
 
 			}
 			else {
-				this._notificationService.add(new Notification('error', response.message));
+				this._notificationService.handleResponse(response,"error");
 			}
 
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 
+	/**
+    * For manage elevator status
+	**/
 	activeInactiveelevator(id: string, isActive: boolean, name: string) {
 		var status = isActive == false ? this._appConstant.activeStatus : this._appConstant.inactiveStatus;
 		var mapObj = {
@@ -188,23 +215,27 @@ export class ElevatorListComponent implements OnInit {
 		});
 
 	}
+
+	/**
+    * For change elevator status
+	**/
 	changeElevatorStatus(id, isActive) {
 
 		this.spinner.show();
 		this.elevatorService.ElevatorchangeStatus(id, isActive).subscribe(response => {
 			this.spinner.hide();
 			if (response.isSuccess === true) {
-				this._notificationService.add(new Notification('success', this._appConstant.msgStatusChange.replace("modulename", "Elevator")));
+				this._notificationService.handleResponse({message:this._appConstant.msgStatusChange.replace("modulename", "Elevator")},"success");
 				this.getelevator();
 
 			}
 			else {
-				this._notificationService.add(new Notification('error', response.message));
+				this._notificationService.handleResponse(response,"error");
 			}
 
 		}, error => {
 			this.spinner.hide();
-			this._notificationService.add(new Notification('error', error));
+			this._notificationService.handleResponse(error,"error");
 		});
 	}
 }

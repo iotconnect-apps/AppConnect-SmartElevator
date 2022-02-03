@@ -6,6 +6,7 @@ DECLARE @count INT
 EXEC [dbo].[ElevatorMaintenance_List]
 	 @companyGuid	= '2D442AEA-E58B-4E8E-B09B-5602E1AA545A'
 	,@entityGuid	= '98611812-0DB2-4183-B352-C3FEC9A3D1A4'
+	,@currentDate	= '2020-05-21 06:47:56.890'
 	,@pageSize		= 10
 	,@pageNumber	= 1
 	,@orderby		= NULL
@@ -23,6 +24,7 @@ SELECT @count count, @output status, @fieldName fieldName
 CREATE PROCEDURE [dbo].[ElevatorMaintenance_List]
 (	@companyGuid		UNIQUEIDENTIFIER
 	,@entityGuid		UNIQUEIDENTIFIER	= NULL
+	,@currentDate		DATETIME			= NULL
 	,@search			VARCHAR(100)		= NULL
 	,@pageSize			INT
 	,@pageNumber		INT
@@ -47,7 +49,8 @@ BEGIN
             SELECT 'ElevatorMaintenance_List' AS '@procName'
             	, CONVERT(VARCHAR(MAX),@companyGuid) AS '@companyGuid'
 				, CONVERT(VARCHAR(MAX),@entityGuid) AS '@entityGuid'
-            	, CONVERT(VARCHAR(MAX),@search) AS '@search'
+            	, CONVERT(VARCHAR(50),@currentDate) as '@currentDate'
+				, CONVERT(VARCHAR(MAX),@search) AS '@search'
 				, CONVERT(VARCHAR(MAX),@pageSize) AS '@pageSize'
 				, CONVERT(VARCHAR(MAX),@pageNumber) AS '@pageNumber'
 				, CONVERT(VARCHAR(MAX),@orderby) AS '@orderby'
@@ -76,8 +79,9 @@ BEGIN
 			,[wing]			NVARCHAR(500)
 			,[description]	NVARCHAR(1000)
 			,[status]		NVARCHAR(100)
+			,[startDateTime]	DATETIME
+			,[endDateTime]		DATETIME
 			,[createdDate]	DATETIME
-			,[scheduledDate]DATETIME
 			,[rowNum]		INT
 		)
 
@@ -100,9 +104,16 @@ BEGIN
 			, EP.[name] AS [building]
 			, G.[name] AS [wing]
 			, EM.[description]
-			, EM.[status] AS [status]
+			, CASE WHEN @currentDate >= [startDateTime] AND @currentDate <= [endDateTime]
+				THEN ''Under Maintenance''
+				ELSE CASE WHEN [startDateTime] < @currentDate AND [endDateTime] < @currentDate
+				THEN ''Completed''
+				ELSE ''Scheduled''
+				END
+			END AS [status]
+			, EM.[startDateTime] AS [startDateTime]
+			, EM.[endDateTime] AS [endDateTime]
 			, EM.[createdDate] 
-			, EM.[scheduledDate]
 			FROM [dbo].[ElevatorMaintenance] EM WITH (NOLOCK) 
 			INNER JOIN [dbo].[Elevator] E ON EM.[elevatorGuid] = E.[guid] AND E.[isDeleted] = 0
 			INNER JOIN [dbo].[Entity] G WITH (NOLOCK) ON EM.[entityGuid] = G.[guid] AND G.[isDeleted] = 0
@@ -116,7 +127,6 @@ BEGIN
 			  OR E.[name] LIKE ''%' + @search + '%''
 			  OR EP.[name] LIKE ''%' + @search + '%''
 			  OR EM.[description] LIKE ''%' + @search + '%'' 
-			  OR EM.[status] LIKE ''%' + @search + '%'' 
 			)'
 			 END +
 		' )  data '
@@ -124,11 +134,11 @@ BEGIN
 		INSERT INTO #temp_ElevatorMaintenance
 		EXEC sp_executesql 
 			  @Sql
-			, N'@orderby VARCHAR(100), @companyGuid UNIQUEIDENTIFIER, @entityGuid UNIQUEIDENTIFIER '
+			, N'@orderby VARCHAR(100), @companyGuid UNIQUEIDENTIFIER, @entityGuid UNIQUEIDENTIFIER, @currentDate DATETIME '
 			, @orderby		= @orderby			
 			, @companyGuid	= @companyGuid			
 			, @entityGuid	= @entityGuid			
-			
+			, @currentDate  = @currentDate
 		SET @count = @@ROWCOUNT
 
 		IF(@pageSize <> -1 AND @pageNumber <> -1)
@@ -142,9 +152,10 @@ BEGIN
 					, EM.[building]
 					, EM.[wing]
 					, EM.[description]
-					, EM.[status]	
-					, EM.[createdDate]	
-					, EM.[scheduledDate]
+					, EM.[status]		
+					, EM.[startDateTime]
+					, EM.[endDateTime]
+					, EM.[createdDate]
 				FROM #temp_ElevatorMaintenance EM
 				WHERE rowNum BETWEEN ((@pageNumber - 1) * @pageSize) + 1 AND (@pageSize * @pageNumber)			
 			END
@@ -160,8 +171,9 @@ BEGIN
 					, EM.[wing]
 					, EM.[description]
 					, EM.[status]	
-					, EM.[createdDate]
-					, EM.[scheduledDate]			
+					, EM.[startDateTime]
+					, EM.[endDateTime]	
+					, EM.[createdDate]	
 				FROM #temp_ElevatorMaintenance EM
 			END
 	   

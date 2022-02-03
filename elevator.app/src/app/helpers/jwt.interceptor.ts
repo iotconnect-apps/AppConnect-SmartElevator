@@ -70,7 +70,7 @@ export class JwtInterceptor implements HttpInterceptor {
           let params = {
             token: currentUser.refresh_token
           };
-          // token refreshing request
+          /* token refreshing request
           return this.http.post(this._notificationService.apiBaseUrl + "api/account/refreshtoken", params).flatMap(
             (response: any) => {
               this._notificationService.refreshTokenInProgress = false;
@@ -100,18 +100,18 @@ export class JwtInterceptor implements HttpInterceptor {
               } else {
                 //Logout from account
                 localStorage.removeItem('currentUser');
-                this._notificationService.add(new Notification('error', this._appConstant.tokenInValidMessage));
+                this._notificationService.handleResponse({message:this._appConstant.tokenInValidMessage},"error");
                 location.reload(true);
                 return;
               }
             }
-          );
+          ); */
         }
       }
-      if (err.status === 401 && !currentUser) {
+      if (err.status === 401 || !currentUser) {
         // auto logout on unauthorized response
         localStorage.removeItem('currentUser');
-        this._notificationService.add(new Notification('error', this._appConstant.unauthorizedMessage));
+        this._notificationService.handleResponse({message:this._appConstant.unauthorizedMessage},"error");
         location.reload(true);
         return;
       }

@@ -13,6 +13,7 @@ using Model = iot.solution.model.Models;
 using Response = iot.solution.entity.Response;
 using IOT = IoTConnect.Model;
 
+
 namespace iot.solution.service.Implementation
 {
     public class SubscriberService : ISubscriberService
@@ -23,8 +24,9 @@ namespace iot.solution.service.Implementation
         private readonly ICompanyRepository _companyRepository;
         private readonly IotConnectClient _iotConnectClient;
         private readonly IUserRepository _userRepository;
+        private readonly IEmailHelper _emailHelper;
 
-        public SubscriberService(LogHandler.Logger logger, IHardwareKitRepository hardwareKitRepository, IKitTypeRepository kitTypeRepository, ICompanyRepository companyRepository, IUserRepository userRepository)
+        public SubscriberService(LogHandler.Logger logger, IHardwareKitRepository hardwareKitRepository, IKitTypeRepository kitTypeRepository, ICompanyRepository companyRepository, IUserRepository userRepository,IEmailHelper emailHelper)
         {
             _logger = logger;
             _subscriberHelper = new SubscriberHelper(logger);
@@ -32,6 +34,7 @@ namespace iot.solution.service.Implementation
             _companyRepository = companyRepository;
             _userRepository = userRepository;
             _iotConnectClient = new IotConnectClient(SolutionConfiguration.BearerToken, SolutionConfiguration.Configuration.EnvironmentCode, SolutionConfiguration.Configuration.SolutionKey);
+            _emailHelper = emailHelper;
         }
         public Response.CountryResponse GetCountryLookUp()
         {
@@ -85,6 +88,25 @@ namespace iot.solution.service.Implementation
             }
             return response;
         }
+        public Entity.ActionStatus ValidateCompany(Entity.ValidateCompanyRequest requestData)
+        {
+            Entity.ActionStatus response = new Entity.ActionStatus(true);
+            try
+            {
+                Entity.BaseResponse<bool> validateResult = new Entity.BaseResponse<bool>(false);
+                validateResult = _subscriberHelper.ValidateCompany(requestData);
+
+                response.Success = validateResult.IsSuccess;
+                response.Message = validateResult.Message;
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorLog(ex);
+                response.Success = false;
+                response.Message = ex.Message;
+            }
+            return response;
+        }
         public Entity.ActionStatus SaveCompany(Entity.SaveCompanyRequest requestData)
         {
             Entity.ActionStatus response = new Entity.ActionStatus(true);
@@ -92,6 +114,7 @@ namespace iot.solution.service.Implementation
             {
                 requestData.User.PhoneCountryCode = requestData.User.PhoneCountryCode.Replace("+", "");
                 Entity.SaveCompanyResponse saveResult = _subscriberHelper.CreateCompany(requestData);
+                Entity.SubsciberCompanyDetails subscriptionDetail = GetSubscriberDetails(requestData.SolutionCode, requestData.User.Email);
                 if (saveResult != null && saveResult.PaymentTransactionId != null)
                 {
                     response.Data = saveResult;
@@ -127,6 +150,7 @@ namespace iot.solution.service.Implementation
                         dbUser.FirstName = objUser.FirstName;
                         dbUser.LastName = objUser.LastName;
                         dbUser.TimeZoneGuid = objUser.TimeZoneGuid;
+                        dbUser.SubscriptionEndDate = Convert.ToDateTime(subscriptionDetail.renewalDate);
                         _userRepository.Update(dbUser);
                     }
                     else
@@ -154,7 +178,9 @@ namespace iot.solution.service.Implementation
                         //}
                     }
                     //Entity.ActionStatus userStatus = _userRepository.UpdateDetails(dbUser);
-
+                    string userName = objUser.FirstName + " " + objUser.LastName;
+                    _emailHelper.SendCompanyRegistrationEmail(userName, requestData.User.CompanyName, requestData.User.Email, requestData.User.Password);
+                    _emailHelper.SendCompanyRegistrationAdminEmail(userName, requestData.User.CompanyName, requestData.User.Email, requestData.User.Address + " , " + requestData.User.CityName, requestData.User.PhoneCountryCode + "-" + requestData.User.Phone);
                     response.Success = true;
                     response.Message = "";
                 }

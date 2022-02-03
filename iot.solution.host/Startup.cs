@@ -20,6 +20,12 @@ using System.Collections.Generic;
 using Mapper = iot.solution.service.Mapper;
 using Hangfire;
 using host.iot.solution.RecurringJobs;
+using Microsoft.AspNetCore.Mvc;
+using IdentityServer4.AccessTokenValidation;
+using System.Net;
+using System.Net.Mail;
+using component.helper;
+using component.helper.Interface;
 
 namespace host.iot.solution
 {
@@ -40,7 +46,19 @@ namespace host.iot.solution
                 services.AddCorsMiddleware(Configuration);
                 services.AddMvcCore().AddNewtonsoftJson();
                 services.AddMvc(config => { config.Filters.Add(new ActionFilterAttribute()); });
-                services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+                services.Configure<ApiBehaviorOptions>(options => {
+                    options.SuppressModelStateInvalidFilter = true;
+                });
+                services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme).AddIdentityServerAuthentication("CompanyUser", o =>
+                {
+                    o.Authority = component.helper.SolutionConfiguration.Configuration.Token.Authority;
+                    o.ApiName = component.helper.SolutionConfiguration.Configuration.Token.ApiName;
+                    o.ApiSecret = component.helper.SolutionConfiguration.Configuration.Token.ApiSecret;
+                    o.EnableCaching = component.helper.SolutionConfiguration.Configuration.Token.EnableCaching;
+                    o.CacheDuration = TimeSpan.FromMinutes(component.helper.SolutionConfiguration.Configuration.Token.CacheDurationMinutes);
+                    o.RequireHttpsMetadata = component.helper.SolutionConfiguration.Configuration.Token.RequireHttpsMetadata;
+                });
+                services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme).AddJwtBearer("Admin", options =>
                 {
                     options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                     {
@@ -53,7 +71,6 @@ namespace host.iot.solution
                         IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(component.helper.SolutionConfiguration.Configuration.Token.SecurityKey))
                     };
                 });
-
                 Mapper.Configuration.Initialize();
                 SwaggerExtension.ConfigureService(services, Configuration);
                 ConfigureServicesCollection(services);
@@ -61,6 +78,19 @@ namespace host.iot.solution
                 services.AddControllers();
                 ConfigureHangfireSettings(services);
                 component.helper.DependencyResolver.Init(services);
+                services.AddScoped<SmtpClient>((serviceProvider) =>
+                {
+                    var config = serviceProvider.GetRequiredService<IConfiguration>();
+                    return new SmtpClient()
+                    {
+                        Host = component.helper.SolutionConfiguration.Configuration.SmtpSetting.Host,
+                        Port = component.helper.SolutionConfiguration.Configuration.SmtpSetting.Port,
+                        Credentials = new NetworkCredential(
+                                component.helper.SolutionConfiguration.Configuration.SmtpSetting.UserName,
+                                component.helper.SolutionConfiguration.Configuration.SmtpSetting.Password
+                            )
+                    };
+                });
             }
             catch (Exception ex)
             {
@@ -120,6 +150,9 @@ namespace host.iot.solution
             RecurringJob.AddOrUpdate<ITelemetryDataJob>(
                job => job.HourlyProcess(),
                string.Format("0 */{0} * * *", component.helper.SolutionConfiguration.Configuration.HangFire.TelemetryHours));
+            RecurringJob.AddOrUpdate<ITelemetryDataJob>(
+            job => job.SubscriptionMailProcess(),
+            Cron.Daily);
         }
         private void ConfigureServicesCollection(IServiceCollection services)
         {
@@ -148,6 +181,7 @@ namespace host.iot.solution
 
             IocConfigurations.Initialize(services);
             services.AddScoped<ITelemetryDataJob, TelemetryDataJob>();
+            services.AddScoped<IEmailHelper, EmailHelper>();
         }
         private void ConfigureMessaging(IServiceCollection services)
         {

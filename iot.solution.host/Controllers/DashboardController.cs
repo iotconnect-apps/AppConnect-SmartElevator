@@ -47,12 +47,12 @@ namespace host.iot.solution.Controllers
         [HttpGet]
         [Route(DashboardRoute.Route.GetBuildingOverView, Name = DashboardRoute.Name.GetBuildingOverView)]
         [EnsureGuidParameterAttribute("buildingId", "Dashboard")]
-        public Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverView(string buildingId, string frequency = "")
+        public Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuildingOverView(string buildingId, DateTime currentDate, string timeZone, string frequency = "")
         {
             Entity.BaseResponse<Entity.BuildingOverviewResponse> response = new Entity.BaseResponse<Entity.BuildingOverviewResponse>(true);
             try
             {
-                response = _service.GetBuildingOverview(Guid.Parse(buildingId), frequency);
+                response = _service.GetBuildingOverview(Guid.Parse(buildingId), frequency,currentDate,timeZone);
             }
             catch (Exception ex)
             {
@@ -121,12 +121,12 @@ namespace host.iot.solution.Controllers
 
         [HttpGet]
         [Route(DashboardRoute.Route.GetOverview, Name = DashboardRoute.Name.GetOverview)]
-        public Entity.BaseResponse<Entity.DashboardOverviewResponse> GetOverview()
+        public Entity.BaseResponse<Entity.DashboardOverviewResponse> GetOverview(DateTime currentDate, string timeZone)
         {
             Entity.BaseResponse<Entity.DashboardOverviewResponse> response = new Entity.BaseResponse<Entity.DashboardOverviewResponse>(true);
             try
             {
-                response = _service.GetOverview();
+                response = _service.GetOverview(currentDate,timeZone);
             }
             catch (Exception ex)
             {
@@ -161,7 +161,7 @@ namespace host.iot.solution.Controllers
         [HttpGet]
         [Route(DashboardRoute.Route.GetDeviceDetail, Name = DashboardRoute.Name.GetDeviceDetail)]
         [EnsureGuidParameterAttribute("deviceId", "Dashboard")]
-        public Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(string deviceId)
+        public Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(string deviceId, DateTime? currentDate = null, string timeZone = "")
         {
             if (deviceId == null || Guid.Parse(deviceId) == Guid.Empty)
             {
@@ -171,7 +171,7 @@ namespace host.iot.solution.Controllers
             Entity.BaseResponse<Response.DeviceDetailsResponse> response = new Entity.BaseResponse<Response.DeviceDetailsResponse>(true);
             try
             {
-                response = _deviceService.GetDeviceDetail(Guid.Parse(deviceId));
+                response = _deviceService.GetDeviceDetail(Guid.Parse(deviceId),currentDate,timeZone);
             }
             catch (Exception ex)
             {
@@ -306,7 +306,7 @@ namespace host.iot.solution.Controllers
         [HttpGet]
         [Route(DashboardRoute.Route.GetBuidingDetailOverview, Name = DashboardRoute.Name.GetBuidingDetailOverview)]
         [EnsureGuidParameterAttribute("entityId", "Dashboard")]
-        public Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuidingOverview(string entityId)
+        public Entity.BaseResponse<Entity.BuildingOverviewResponse> GetBuidingOverview(string entityId, DateTime currentDate, string timeZone)
         {
             if (entityId == null || Guid.Parse(entityId) == Guid.Empty)
             {
@@ -317,7 +317,7 @@ namespace host.iot.solution.Controllers
             try
             {
 
-                var result = _entityService.GetBuildingOverviewDetail(Guid.Parse(entityId));
+                var result = _entityService.GetBuildingOverviewDetail(Guid.Parse(entityId),currentDate,timeZone);
 
                 response = result;
                 response.IsSuccess = true;
@@ -329,5 +329,157 @@ namespace host.iot.solution.Controllers
             }
             return response;
         }
+
+        #region Dynamic Dashboard API
+
+        [HttpGet]
+        [Route(DashboardRoute.Route.GetMasterWidget, Name = DashboardRoute.Name.GetMasterWidget)]
+        public Entity.BaseResponse<List<Entity.MasterWidget>> GetMasterWidget()
+        {
+            Entity.BaseResponse<List<Entity.MasterWidget>> response = new Entity.BaseResponse<List<Entity.MasterWidget>>(true);
+            try
+            {
+                response.Data = _service.GetMasterWidget();
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<List<Entity.MasterWidget>>(false, ex.Message);
+            }
+            return response;
+        }
+
+        [HttpGet]
+        [Route(DashboardRoute.Route.GetMasterWidgetById, Name = DashboardRoute.Name.GetMasterWidgetById)]
+        [EnsureGuidParameter("widgetId", "MasterWidget")]
+        public Entity.BaseResponse<Entity.MasterWidget> GetMasterWidgetById(string widgetId)
+        {
+            Entity.BaseResponse<Entity.MasterWidget> response = new Entity.BaseResponse<Entity.MasterWidget>(true);
+            try
+            {
+                response.Data = _service.GetMasterWidgetById(Guid.Parse(widgetId));
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<Entity.MasterWidget>(false, ex.Message);
+            }
+            return response;
+        }
+
+        [HttpPost]
+        [Route(DashboardRoute.Route.Manage, Name = DashboardRoute.Name.Manage)]
+        public Entity.BaseResponse<Entity.MasterWidget> Manage(Entity.MasterWidget request)
+        {
+            Entity.BaseResponse<Entity.MasterWidget> response = new Entity.BaseResponse<Entity.MasterWidget>(true);
+            try
+            {
+                var result = _service.ManageMasterWidget(request);
+                response.IsSuccess = result.Success;
+                response.Message = result.Message;
+                response.Data = result.Data;
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<Entity.MasterWidget>(false, ex.Message);
+            }
+            return response;
+        }
+
+        [HttpPut]
+        [Route(DashboardRoute.Route.DeleteMasterWidget, Name = DashboardRoute.Name.DeleteMasterWidget)]
+        [EnsureGuidParameter("id", "MasterWidget")]
+        public Entity.BaseResponse<bool> DeleteMasterWidget(string id)
+        {
+            Entity.BaseResponse<bool> response = new Entity.BaseResponse<bool>(true);
+            try
+            {
+                var status = _service.DeleteMasterWidget(Guid.Parse(id));
+                response.IsSuccess = status.Success;
+                response.Message = status.Message;
+                response.Data = status.Success;
+            }
+            catch (Exception ex)
+            {
+                return new Entity.BaseResponse<bool>(false, ex.Message);
+            }
+            return response;
+        }
+
+        [HttpGet]
+        [Route(DashboardRoute.Route.GetUserWidget, Name = DashboardRoute.Name.GetUserWidget)]
+        public Entity.BaseResponse<List<Entity.UserDasboardWidget>> GetUserWidget()
+        {
+            Entity.BaseResponse<List<Entity.UserDasboardWidget>> response = new Entity.BaseResponse<List<Entity.UserDasboardWidget>>(true);
+            try
+            {
+                response.Data = _service.GetUserWidget();
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<List<Entity.UserDasboardWidget>>(false, ex.Message);
+            }
+            return response;
+        }
+
+        [HttpGet]
+        [Route(DashboardRoute.Route.GetUserWidgetById, Name = DashboardRoute.Name.GetUserWidgetById)]
+        [EnsureGuidParameter("widgetId", "UserWidget")]
+        public Entity.BaseResponse<Entity.UserDasboardWidget> GetUserWidgetById(string widgetId)
+        {
+            Entity.BaseResponse<Entity.UserDasboardWidget> response = new Entity.BaseResponse<Entity.UserDasboardWidget>(true);
+            try
+            {
+                response.Data = _service.GetUserWidgetById(Guid.Parse(widgetId));
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<Entity.UserDasboardWidget>(false, ex.Message);
+            }
+            return response;
+        }
+
+        [HttpPost]
+        [Route(DashboardRoute.Route.ManageUserWidget, Name = DashboardRoute.Name.ManageUserWidget)]
+        public Entity.BaseResponse<Entity.UserDasboardWidget> ManageUserWidget(Entity.UserDasboardWidget request)
+        {
+            Entity.BaseResponse<Entity.UserDasboardWidget> response = new Entity.BaseResponse<Entity.UserDasboardWidget>(true);
+            try
+            {
+                var result = _service.ManageUserWidget(request);
+                response.IsSuccess = result.Success;
+                response.Message = result.Message;
+                response.Data = result.Data;
+            }
+            catch (Exception ex)
+            {
+                base.LogException(ex);
+                return new Entity.BaseResponse<Entity.UserDasboardWidget>(false, ex.Message);
+            }
+            return response;
+        }
+        [HttpPut]
+        [Route(DashboardRoute.Route.DeleteUserWidget, Name = DashboardRoute.Name.DeleteUserWidget)]
+        [EnsureGuidParameter("id", "UserWidget")]
+        public Entity.BaseResponse<bool> DeleteUserWidget(string id)
+        {
+            Entity.BaseResponse<bool> response = new Entity.BaseResponse<bool>(true);
+            try
+            {
+                var status = _service.DeleteUserWidget(Guid.Parse(id));
+                response.IsSuccess = status.Success;
+                response.Message = status.Message;
+                response.Data = status.Success;
+            }
+            catch (Exception ex)
+            {
+                return new Entity.BaseResponse<bool>(false, ex.Message);
+            }
+            return response;
+        }
+        #endregion
     }
 }

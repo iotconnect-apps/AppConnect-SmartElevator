@@ -35,6 +35,8 @@ namespace iot.solution.model.Models
         public virtual DbSet<TelemetrySummaryDaywise> TelemetrySummaryDaywise { get; set; }
         public virtual DbSet<TelemetrySummaryHourwise> TelemetrySummaryHourwise { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<MasterWidget> MasterWidget { get; set; }
+        public virtual DbSet<UserDasboardWidget> UserDasboardWidget { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -454,9 +456,9 @@ namespace iot.solution.model.Models
 
                 entity.Property(e => e.EntityGuid).HasColumnName("entityGuid");
               
-                entity.Property(e => e.Status)
-                    .HasColumnName("status")
-                    .HasMaxLength(100);
+                //entity.Property(e => e.Status)
+                //    .HasColumnName("status")
+                //    .HasMaxLength(100);
             });
 
             modelBuilder.Entity<Entity>(entity =>
@@ -915,6 +917,58 @@ namespace iot.solution.model.Models
 
                 entity.Property(e => e.UpdatedDate)
                     .HasColumnName("updatedDate")
+                    .HasColumnType("datetime");
+                entity.Property(e => e.SubscriptionEndDate)
+                  .HasColumnName("subscriptionEndDate")
+                  .HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<MasterWidget>(entity =>
+            {
+                entity.HasKey(e => e.Guid);
+                entity.Property(e => e.Guid)
+                    .HasColumnName("guid")
+                    .ValueGeneratedNever();
+                entity.Property(e => e.Widgets)
+                    .HasColumnName("widgets");
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnName("createdDate")
+                    .HasColumnType("datetime");
+                entity.Property(e => e.IsActive).HasColumnName("isActive");
+                entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+                entity.Property(e => e.ModifiedBy).HasColumnName("modifiedBy");
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnName("modifiedDate")
+                    .HasColumnType("datetime");
+            });
+
+            modelBuilder.Entity<UserDasboardWidget>(entity =>
+            {
+                entity.HasKey(e => e.Guid);
+                entity.Property(e => e.Guid)
+                    .HasColumnName("guid")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.DashboardName)
+                    .IsRequired()
+                    .HasColumnName("dashboardName")
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Widgets)
+                    .HasColumnName("widgets");
+                entity.Property(e => e.CreatedBy).HasColumnName("createdBy");
+                entity.Property(e => e.CreatedDate)
+                    .HasColumnName("createdDate")
+                    .HasColumnType("datetime");
+                entity.Property(e => e.IsDefault).HasColumnName("isDefault");
+                entity.Property(e => e.IsSystemDefault).HasColumnName("isSystemDefault");
+                entity.Property(e => e.UserId).HasColumnName("userId");
+                entity.Property(e => e.IsActive).HasColumnName("isActive");
+                entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
+                entity.Property(e => e.ModifiedBy).HasColumnName("modifiedBy");
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnName("modifiedDate")
                     .HasColumnType("datetime");
             });
 

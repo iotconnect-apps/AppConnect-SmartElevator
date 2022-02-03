@@ -9,6 +9,7 @@
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"target": "es6",
+		"skipLibCheck": true,
 		"typeRoots": [
 			"node_modules/@types"
 		],

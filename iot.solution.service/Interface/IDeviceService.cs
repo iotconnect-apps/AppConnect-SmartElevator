@@ -13,7 +13,7 @@ namespace iot.solution.service.Interface
         Entity.ActionStatus Delete(Guid id);
         Entity.SearchResult<List<Entity.Elevator>> List(Entity.SearchRequest request);
         Entity.SearchResult<List<Entity.DeviceDetailResponse>> GetEntityDeviceDetailList(Entity.SearchRequest request);
-        Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId);
+        Entity.BaseResponse<Response.DeviceDetailsResponse> GetDeviceDetail(Guid deviceId, DateTime? currentDate = null, string timeZone = "");
         List<Entity.Elevator> GetEntityDeviceList(Guid entityId);
         Entity.SearchResult<List<Entity.DeviceSearchResponse>> GatewayList(Entity.SearchRequest request);
         Entity.ActionStatus UpdateStatus(Guid id, bool status);

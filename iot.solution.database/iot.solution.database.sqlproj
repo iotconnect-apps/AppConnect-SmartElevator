@@ -141,6 +141,9 @@
     <Build Include="dbo\Stored Procedures\TelemetrySummary_Daywise_Add.sql" />
     <Build Include="dbo\Stored Procedures\TelemetrySummary_Hourwise_Add.sql" />
     <Build Include="dbo\Stored Procedures\IOTConnectAlert_Add.sql" />
+    <Build Include="dbo\Stored Procedures\ElevatorMaintenance_Get.sql" />
+    <Build Include="dbo\Tables\MasterWidget.sql" />
+    <Build Include="dbo\Tables\UserDasboardWidget.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

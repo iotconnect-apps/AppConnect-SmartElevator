@@ -25,6 +25,22 @@ export class NotificationService {
 			this._notifications.next(notification);
 		}
 	}
+
+	public handleResponse(response,type){
+		let dataError:any=[];
+		if(response.data && response.data != "00000000-0000-0000-0000-000000000000") {
+			if(response.data.length && response.data.length > 0){
+				response.data.forEach(element => {
+					dataError.push(element.message)
+				  });
+			}
+		} else {
+		  dataError[0]=response.message
+		}
+		if(dataError.length > 0){
+			this.add(new Notification(type, dataError));
+		}
+	}
 }
 
 export class ResponseData {

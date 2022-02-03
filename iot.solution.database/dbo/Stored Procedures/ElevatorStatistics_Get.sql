@@ -4,7 +4,8 @@ DECLARE @output INT = 0
 		,@fieldName				nvarchar(255)
 		,@syncDate	DATETIME
 EXEC [dbo].[ElevatorStatistics_Get]
-	 @guid				= 'FA973382-0321-4701-A03E-CDDEAEC9F68B'	
+	 @guid				= 'FA973382-0321-4701-A03E-CDDEAEC9F68B'
+	,@currentDate	= '2020-05-21 06:47:56.890'
 	,@invokingUser  	= '7D31E738-5E24-4EA2-AAEF-47BB0F3CCD41'
 	,@version			= 'v1'
 	,@output			= @output		OUTPUT
@@ -17,6 +18,7 @@ EXEC [dbo].[ElevatorStatistics_Get]
 
 CREATE PROCEDURE [dbo].[ElevatorStatistics_Get]
 (	 @guid				UNIQUEIDENTIFIER	
+	,@currentDate		DATETIME			= NULL
 	,@invokingUser		UNIQUEIDENTIFIER	= NULL
 	,@version			NVARCHAR(10)
 	,@output			SMALLINT		  OUTPUT
@@ -35,7 +37,8 @@ BEGIN
         (
             SELECT 'ElevatorStatistics_Get' AS '@procName'
 			, CONVERT(nvarchar(MAX),@guid) AS '@guid'			
-		    , CONVERT(nvarchar(MAX),@invokingUser) AS '@invokingUser'
+		    , CONVERT(VARCHAR(50),@currentDate) as '@currentDate'
+			, CONVERT(nvarchar(MAX),@invokingUser) AS '@invokingUser'
 			, CONVERT(nvarchar(MAX),@version) AS '@version'
 			, CONVERT(nvarchar(MAX),@output) AS '@output'
             , CONVERT(nvarchar(MAX),@fieldName) AS '@fieldName'
@@ -98,18 +101,7 @@ BEGIN
 			, ISNULL(S.[count],0) AS [averageSpeed]
 			, ISNULL(V.[count],0) AS [averageVibration]
 			, ISNULL(ISNULL(T.[totalTrip],0) / CASE WHEN DATEDIFF(DD,T.[minDate],T.[maxDate]) = 0 THEN 1 ELSE DATEDIFF(DD,T.[minDate],T.[maxDate]) END ,0) AS [averageTrip]
-			, CASE WHEN EM.[scheduledDate] IS NOT NULL AND EM.[scheduledDate] > GETUTCDATE() THEN 
-				ISNULL(DATEDIFF(DD,GETUTCDATE(),EM.[scheduledDate]),0)
-			  ELSE 0
-			  END AS [day]
-			, CASE WHEN EM.[scheduledDate] IS NOT NULL AND EM.[scheduledDate] > GETUTCDATE() THEN 
-				ISNULL(DATEDIFF(HH,GETUTCDATE(),EM.[scheduledDate])%24,0) 
-			  ELSE 0
-			  END AS [hour]
-			, CASE WHEN EM.[scheduledDate] IS NOT NULL AND EM.[scheduledDate] > GETUTCDATE() THEN 
-				ISNULL(DATEDIFF(MINUTE,GETUTCDATE(),EM.[scheduledDate])%60,0) 
-			  ELSE 0
-			  END AS [minute]
+			, EM.[startDateTime] AS [startDateTime]
 		FROM [dbo].[Elevator] E (NOLOCK) 
 		LEFT JOIN CTE_EnergyCount EN ON E.[uniqueId] = EN.[uniqueId]
 		LEFT JOIN CTE_OperationgHoursCount OHC ON E.[uniqueId] = OHC.[uniqueId]
@@ -117,7 +109,7 @@ BEGIN
 		LEFT JOIN CTE_Speed S ON E.[uniqueId] = S.[uniqueId]
 		LEFT JOIN CTE_Vibration V ON E.[uniqueId] = V.[uniqueId]
 		LEFT JOIN CTE_Trips T ON E.[uniqueId] = T.[uniqueId]
-		LEFT JOIN dbo.[ElevatorMaintenance] EM (NOLOCK) ON E.[guid] = EM.[elevatorGuid] AND EM.[isDeleted] = 0 AND EM.[status] = 'Scheduled'
+		LEFT JOIN (SELECT TOP 1 * FROM dbo.[ElevatorMaintenance] (NOLOCK) WHERE [elevatorGuid] = @guid AND [isDeleted] = 0 AND [startDateTime] >= @currentDate ORDER BY [startdateTime] ASC) EM ON E.[guid] = EM.[elevatorGuid]
 		--LEFT JOIN CTE_Maintenance CM ON E.[guid] = CM.[building]
 		WHERE E.[guid] = @guid AND E.[isDeleted]=0
 
