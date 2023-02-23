@@ -115,7 +115,7 @@
 		"rxjs": "^6.5.2",
 		"rxjs-compat": "^6.5.2",
 		"selenium-webdriver": "^4.0.0-alpha.4",
-		"sequelize": "^5.8.12",
+		"sequelize": "^6.28.2",
 		"simple-oauth2": "^2.2.1",
 		"socket.io": "^2.0.3",
 		"store": "^2.0.12",
